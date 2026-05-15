@@ -128,6 +128,17 @@
   <select id="flt-sort-sel" style="display:none"></select>
 </div>
 <div style="flex:1;min-width:0">
+<div class="mob-flt-bar" id="mob-flt-bar">
+  <button class="mob-flt-btn" id="mob-flt-open-btn" onclick="openMobFilter()">
+    <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+    Фільтри
+  </button>
+  <span class="mob-found" id="mob-found-cnt">0 товарів</span>
+  <button class="mob-sort-btn" onclick="toggleSortMini()" id="mob-sort-mini-btn">
+    <span id="mob-sort-val">Популярні</span>
+    <svg viewBox="0 0 12 12"><path d="M2 4l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</div>
 <div class="prod-top-bar">
   <span class="prod-found">Всього знайдено: <strong id="prod-found-cnt">0</strong></span>
   <div class="sort-mini" id="sort-mini">
@@ -221,14 +232,29 @@
     <div class="mdeliv"><p><span class="brand-b np">NP</span>Nova Poshta: 1-2 дні</p><p>Укрпошта: 3-5 днів</p></div>
   </div>
 </div></div></div>
+<!-- Mobile filter overlay + sheet -->
+<div class="mob-flt-overlay" id="mob-flt-overlay" onclick="closeMobFilter()"></div>
+<div class="mob-flt-sheet" id="mob-flt-sheet">
+  <div class="mob-flt-sheet-hdr">
+    <h3>Фільтри</h3>
+    <button class="mob-flt-sheet-cls" onclick="closeMobFilter()">✕</button>
+  </div>
+  <div class="mob-flt-body" id="mob-flt-body"></div>
+  <div class="mob-flt-foot">
+    <button class="mob-flt-reset" onclick="fltReset();renderMobFltBody()">Скинути</button>
+    <button class="mob-flt-apply" onclick="applyFilters();closeMobFilter()">Застосувати</button>
+  </div>
+</div>
+
+<!-- Mobile bottom nav -->
 <nav class="mob-nav" id="mob-nav">
-  <button class="mob-nav-item active" id="mobnav-home" onclick="showPage('products');mobNavActive('mobnav-home')">
+  <button class="mob-nav-item" id="mobnav-cat" onclick="showPage('products');mobNavActive('mobnav-cat')">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Каталог
+  </button>
+  <button class="mob-nav-item active" id="mobnav-home" onclick="showPage('home');mobNavActive('mobnav-home')">
     <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     Головна
-  </button>
-  <button class="mob-nav-item" id="mobnav-search" onclick="document.querySelector('.srch-input').focus();mobNavActive('mobnav-search')">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    Пошук
   </button>
   <button class="mob-nav-item" id="mobnav-cart" onclick="openPanel('cart-panel');mobNavActive('mobnav-cart')">
     <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.98-1.75L23 6H6"/></svg>
@@ -241,7 +267,12 @@
   </button>
   <button class="mob-nav-item" id="mobnav-acc" onclick="openPanel('acc-panel');renderAcc();mobNavActive('mobnav-acc')">
     <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-    Кабінет
+    Акаунт
+  </button>
+  <button class="mob-nav-item" id="mobnav-chat" onclick="openSupportChat();mobNavActive('mobnav-chat')">
+    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    Чат
+    <span class="mob-nav-badge" id="mob-chat-badge" style="display:none">0</span>
   </button>
 </nav>
 <div class="chatwid"><div style="position:relative;margin-bottom:12px"><div class="cnotif" id="sup-notif" style="display:none">0</div><button class="ctgl ctgl-sup" onclick="openSupportChat()"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></button></div><div style="position:relative"><div class="cnotif" id="cnotif">1</div><button class="ctgl" onclick="openPanel('ai-panel');initAI()"><img src="/ai-bot.png" class="ctgl-ai-img" alt="AI"></button></div></div>
