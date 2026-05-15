@@ -6,21 +6,12 @@
     padding:10px 14px;
     gap:10px;
     display:grid;
-    grid-template-columns:auto 1fr auto;
+    grid-template-columns:auto 1fr;
     align-items:center;
     flex-wrap:unset;
   }
   .srch-wrap{order:0;grid-column:2;max-width:100%}
-  .ai-hbtn{
-    grid-column:3;
-    padding:8px;
-    border-radius:50%;
-    width:40px;height:40px;
-    justify-content:center;
-  }
-  .ai-hbtn span{display:none}
-  .ai-hbtn-logo{width:22px;height:22px}
-  .ai-dot{display:none}
+  .ai-hbtn{display:none !important}
   .lang-sw{display:none}
   /* hide cart/fav/acc from header — they're in bottom nav */
   .hdr-acts{display:none}
@@ -28,8 +19,11 @@
   .logo-nm{font-size:16px}
   .logo-img{width:34px;height:34px}
 
-  /* ── PROMO BAR ── */
-  .promo-bar{display:flex}
+  /* ── PROMO BAR — hidden on mobile ── */
+  .promo-bar{display:none !important}
+
+  /* ── CATEGORY NAV — hidden on mobile ── */
+  .catnav{display:none}
 
   /* ── CATEGORY NAV ── */
   .catnav-inner{
@@ -142,10 +136,12 @@
   .mbody{grid-template-columns:1fr;gap:14px;padding:14px}
   .mimg-main{height:170px;font-size:68px}
 
-  /* ── CHAT WIDGET ── */
-  .chatwid{bottom:76px;right:14px}
-  .ctgl-ai-img{width:48px;height:48px}
-  .ctgl-sup{display:none} /* chat support moved to bottom nav */
+  /* ── CHAT WIDGET — fully hidden on mobile ── */
+  .chatwid{display:none !important}
+
+  /* ── CHAT PANEL TABS ── */
+  .sp-chat-tabs{display:flex !important}
+  .sp-hdtitle{display:none !important}
 
   /* ── TOAST ── */
   .toast{top:auto;bottom:80px;right:12px;left:12px;font-size:12px}
@@ -270,6 +266,12 @@
   min-width:14px;height:14px;border-radius:8px;
   display:flex;align-items:center;justify-content:center;
   padding:0 3px;border:2px solid #fff;
+}
+.mob-nav-ai-lbl{
+  display:block;background:var(--g);color:#fff;
+  font-size:7px;font-weight:800;padding:1px 5px;
+  border-radius:5px;line-height:1.3;letter-spacing:0.3px;
+  margin-bottom:1px;
 }
 
 /* ════════════════════════════════════════
