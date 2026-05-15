@@ -32,7 +32,7 @@
 .pd-fav-btn:hover{border-color:var(--red);color:var(--red)}.pd-fav-btn.active{border-color:var(--red);color:var(--red);background:#fff0f0}
 .pd-ai-btn{width:100%;background:linear-gradient(135deg,#0f2d1c,#1FAF5A);color:#fff;border:none;border-radius:40px;padding:14px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:"Manrope",sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:16px;position:relative;overflow:hidden}
 .pd-ai-btn::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);animation:shim 2.5s infinite;transform:translateX(-100%)}
-.pd-ai-btn:hover{opacity:.9}.pd-ai-btn svg{width:18px;height:18px;fill:#fff;flex-shrink:0}
+.pd-ai-btn:hover{opacity:.9}
 .pd-del{border:1.5px solid var(--gl2);border-radius:14px;padding:16px;margin-bottom:16px}
 .pd-del-t{font-size:13px;font-weight:700;color:var(--dk);margin-bottom:10px}
 .pd-dr{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--bg);font-size:12px}

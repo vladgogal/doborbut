@@ -29,7 +29,7 @@
   </div>
   <button class="srch-btn" onclick="doSearch()">🔍 Пошук</button>
 </div><div class="srch-drop" id="srch-drop"></div></div>
-<button class="ai-hbtn" onclick="openPanel('ai-panel');initAI()"><svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 010 2h-1v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1H2a1 1 0 010-2h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2z"/></svg><span id="ai-hbtn-label">AI Помічник</span><div class="ai-dot"></div></button>
+<button class="ai-hbtn" onclick="openPanel('ai-panel');initAI()"><img src="/ai-bot.png" class="ai-hbtn-logo" alt="AI"><span id="ai-hbtn-label">AI Помічник</span><div class="ai-dot"></div></button>
 <div class="hdr-acts">
   <div class="lang-sw">
     <button class="lb active" data-lang="uk" onclick="setLang('uk')">UA</button>
@@ -173,7 +173,7 @@
       <div class="pd-pblk"><div class="pd-prow"><span class="pd-pnew" id="pd-pnew">459 грн</span><span class="pd-pold" id="pd-pold">799 грн</span><span class="pd-disc" id="pd-disc">-43%</span></div><div class="pd-save" id="pd-save">Ви економите 340 грн</div></div>
       <div class="pd-qrow"><span class="pd-qlbl">Кількість:</span><div class="pd-qctrl"><button class="pd-qbtn" onclick="pdChgQty(-1)">−</button><div class="pd-qty-v" id="pd-qty-v">1</div><button class="pd-qbtn" onclick="pdChgQty(1)">+</button></div></div>
       <div class="pd-brow"><button class="pd-cart-btn" id="pd-cart-btn"> Додати до кошика</button><button class="pd-fav-btn" id="pd-fav-btn">♡</button></div>
-      <button class="pd-ai-btn" onclick="togglePdAI()"><svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 010 2h-1v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1H2a1 1 0 010-2h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2z"/></svg> AI: Розкажи про цей товар<div class="ai-dot"></div></button>
+      <button class="pd-ai-btn" onclick="togglePdAI()"><img src="/ai-bot.png" class="ai-hbtn-logo" alt="AI"> AI: Розкажи про цей товар<div class="ai-dot"></div></button>
       <div class="pd-del"><div class="pd-del-t"> Доставка та оплата</div>
         <div class="pd-dr"><div class="pd-di"><span class="brand-b np">NP</span></div><span class="pd-dn">Nova Poshta</span><span class="pd-dt">1-2 дні</span><span class="pd-dp">від 65 грн</span></div>
         <div class="pd-dr"><div class="pd-di"></div><span class="pd-dn">Укрпошта</span><span class="pd-dt">3-5 днів</span><span class="pd-dp">від 35 грн</span></div>
@@ -221,7 +221,7 @@
     <div class="mdeliv"><p><span class="brand-b np">NP</span>Nova Poshta: 1-2 дні</p><p>Укрпошта: 3-5 днів</p></div>
   </div>
 </div></div></div>
-<div class="chatwid"><div style="position:relative;margin-bottom:12px"><div class="cnotif" id="sup-notif" style="display:none">0</div><button class="ctgl ctgl-sup" onclick="openSupportChat()"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></button></div><div style="position:relative"><div class="cnotif" id="cnotif">1</div><button class="ctgl" onclick="openPanel('ai-panel');initAI()"><svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 010 2h-1v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1H2a1 1 0 010-2h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2z"/></svg></button></div></div>
+<div class="chatwid"><div style="position:relative;margin-bottom:12px"><div class="cnotif" id="sup-notif" style="display:none">0</div><button class="ctgl ctgl-sup" onclick="openSupportChat()"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></button></div><div style="position:relative"><div class="cnotif" id="cnotif">1</div><button class="ctgl" onclick="openPanel('ai-panel');initAI()"><img src="/ai-bot.png" class="ctgl-ai-img" alt="AI"></button></div></div>
 <script type="module" src="/src/main.js"></script>
 <script type="module" src="/src/js/chat-support.js"></script>
 </body>

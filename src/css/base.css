@@ -49,7 +49,7 @@ body{font-family:"Manrope",sans-serif;background:var(--bg);color:var(--dk);min-w
 .ai-hbtn{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0f2d1c,#1FAF5A);border:none;border-radius:40px;padding:10px 16px;cursor:pointer;color:#fff;font-size:13px;font-weight:700;flex-shrink:0;position:relative;overflow:hidden;white-space:nowrap;font-family:"Manrope",sans-serif}
 .ai-hbtn::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);animation:shim 2.5s infinite;transform:translateX(-100%)}
 @keyframes shim{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
-.ai-hbtn:hover{opacity:.9}.ai-hbtn svg{width:17px;height:17px;fill:#fff;flex-shrink:0}
+.ai-hbtn:hover{opacity:.9}.ai-hbtn-logo{width:26px;height:26px;object-fit:contain;flex-shrink:0;border-radius:50%}
 .ai-dot{width:7px;height:7px;background:#6effa8;border-radius:50%;animation:puls 2s infinite;flex-shrink:0}
 @keyframes puls{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.85)}}
 .hdr-acts{display:flex;align-items:center;gap:5px;flex-shrink:0}
@@ -305,8 +305,8 @@ body{font-family:"Manrope",sans-serif;background:var(--bg);color:var(--dk);min-w
 .ai-send{background:var(--g);border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .ai-send:hover{background:var(--gd)}.ai-send svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round}
 .chatwid{position:fixed;bottom:28px;right:28px;z-index:350}
-.ctgl{width:56px;height:56px;background:var(--g);border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(31,175,90,.4);transition:transform .2s}
-.ctgl:hover{transform:scale(1.08)}.ctgl svg{width:24px;height:24px;fill:#fff}
+.ctgl{width:56px;height:56px;background:transparent;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:none;transition:transform .2s;padding:0}
+.ctgl:hover{transform:scale(1.08)}.ctgl svg{width:24px;height:24px;fill:#fff}.ctgl-ai-img{width:56px;height:56px;object-fit:contain;border-radius:50%;display:block}
 .cnotif{position:absolute;top:-2px;right:-2px;width:17px;height:17px;background:var(--red);border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700}
 .molay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:none;align-items:center;justify-content:center;padding:24px}
 .molay.open{display:flex}
