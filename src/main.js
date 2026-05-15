@@ -1050,13 +1050,38 @@ window.saveOrderToSupabase=saveOrderToSupabase;
 // ── AI ──
 var OPENAI_KEY=import.meta.env.VITE_OPENAI_KEY||atob("c2stcHJvai1pVWlPcl9Ma0VxR3pfRlAwcnUwYjZFYWtLZXgxeEpjc0xmU21EaGpySFZwZlUwNUl3Q2ZJazFUTmItWG10LUg3YkFXRHpteGlPN1QzQmxia0ZKLUg4LVF0RlZoTzRQS2R1WGtfUWQ1YTRfU043UXU5eHV0cGFzMmRaYzhrSXpmRHE4UmZuNWJybkpwRzhOUEJNRUtENzc1M0w5SUE=");
 var aiHistory=[];
-var AI_SYS="Ти — AI-помічник інтернет-магазину «Добробут», який продає товари для дому: посуд, декор, текстиль, засоби для ванної, організація простору. Відповідай коротко і доброзичливо (2-4 речення). Якщо питають про конкретний товар — хвали і пропонуй схожі. Безкоштовна доставка від 1500 грн. Відповідай тією мовою, якою пишуть (ua/ru/en).";
+
+function buildAISys(){
+  var lines=PRODS.map(function(p){
+    var d=Math.round((1-p.p/p.op)*100);
+    return 'ID:'+p.id+' | '+p.e+' '+p.nm_uk+' | '+p.p+' грн (-'+d+'%) | ⭐'+p.r+' ('+p.rv+' відг.)';
+  });
+  return 'Ти — AI-помічник інтернет-магазину «Добробут» (товари для дому). ВІДПОВІДАЙ ЛИШЕ ПО ТЕМІ МАГАЗИНУ.\n\n'
+    +'КАТАЛОГ ТОВАРІВ:\n'+lines.join('\n')+'\n\n'
+    +'КАТЕГОРІЇ: Кухня, Ванна, Прибирання, Декор, Спальня, Освітлення, Дитячі, Тварини, Інструменти, Сад\n\n'
+    +'ДОСТАВКА: Нова Пошта (відділення/кур\'єр) 1-2 дні 50-80 грн; Укрпошта 2-5 днів 45 грн; БЕЗКОШТОВНО від 1500 грн.\n\n'
+    +'ОПЛАТА: Онлайн (LiqPay, Visa/Mastercard, Apple Pay, Google Pay) або накладений платіж.\n\n'
+    +'ПОВЕРНЕННЯ: 14 днів, товар у незайманому вигляді. Зв\'язок: підтримка в чаті на сайті.\n\n'
+    +'ПРАВИЛА:\n'
+    +'1. Відповідай ТІЛЬКИ про магазин, товари, ціни, доставку, оплату, повернення.\n'
+    +'2. Якщо питання не про магазин — скажи: "Я консультую лише по магазину Добробут 😊"\n'
+    +'3. Рекомендуючи товар — ЗАВЖДИ додавай посилання: [PRODUCT:id:назва], наприклад [PRODUCT:5:Набір ножів]. Клієнт натисне і побачить товар.\n'
+    +'4. Відповідай мовою клієнта (uk/ru/en). Будь коротким (2-5 речень) і доброзичливим, використовуй емодзі.';
+}
+
+function parseAIReply(txt){
+  var s=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  s=s.replace(/\[PRODUCT:(\d+):([^\]]+)\]/g,function(_,id,name){
+    return '<button class="ai-prod-link" onclick="openProdPage('+id+')">'+name+' →</button>';
+  });
+  return s.replace(/\n/g,'<br>');
+}
 
 async function callGPT(messages){
   var res=await fetch("https://api.openai.com/v1/chat/completions",{
     method:"POST",
     headers:{"Content-Type":"application/json","Authorization":"Bearer "+OPENAI_KEY},
-    body:JSON.stringify({model:"gpt-4o-mini",messages:messages,max_tokens:200,temperature:0.75})
+    body:JSON.stringify({model:"gpt-4o-mini",messages:messages,max_tokens:350,temperature:0.7})
   });
   if(!res.ok){var e=await res.json().catch(function(){return {};});throw new Error((e.error&&e.error.message)||"OpenAI "+res.status);}
   var j=await res.json();
@@ -1074,7 +1099,8 @@ function initAI(){
 }
 function addAIBot(txt){
   var c=document.getElementById("ai-msgs");
-  var d=document.createElement("div");d.className="ai-msg bot";d.textContent=txt;
+  var d=document.createElement("div");d.className="ai-msg bot";
+  d.innerHTML=parseAIReply(txt);
   c.appendChild(d);c.scrollTop=99999;
 }
 function sendAI(){var inp=document.getElementById("ai-inp");var t=inp.value.trim();if(!t)return;inp.value="";sendAIMsg(t);}
@@ -1087,8 +1113,7 @@ function sendAIMsg(t){
   c.appendChild(typ);c.scrollTop=99999;
   aiHistory.push({role:"user",content:t});
   if(aiHistory.length>20)aiHistory=aiHistory.slice(-20);
-  var msgs=[{role:"system",content:AI_SYS}].concat(aiHistory);
-  callGPT(msgs).then(function(reply){
+  callGPT([{role:"system",content:buildAISys()}].concat(aiHistory)).then(function(reply){
     aiHistory.push({role:"assistant",content:reply});
     var el=document.getElementById("ai-typ");if(el)el.remove();
     addAIBot(reply);
@@ -1978,13 +2003,14 @@ function togglePdAI(){
     document.getElementById("pd-ai-chips").innerHTML=chips.map(function(c){return '<button class="pd-chip" onclick="pdAsk(\''+c+'\')">'+c+'</button>';}).join("");
   }
 }
-function pdAiMsg(t,x){var m=document.getElementById("pd-ai-msgs");var d=document.createElement("div");d.className="pd-amsg "+t;d.textContent=x;m.appendChild(d);m.scrollTop=99999;}
+function pdAiMsg(t,x){var m=document.getElementById("pd-ai-msgs");var d=document.createElement("div");d.className="pd-amsg "+t;if(t==="bot"){d.innerHTML=parseAIReply(x);}else{d.textContent=x;}m.appendChild(d);m.scrollTop=99999;}
 function pdSend(){var inp=document.getElementById("pd-ai-inp");var t=inp.value.trim();if(!t)return;inp.value="";pdAsk(t);}
 function pdAiSend(){pdSend();}
 function pdAsk(q){
   pdAiMsg("usr",q);
   var p=PRODS.find(function(x){return x.id===pdCurrentId;});
-  var sysPd=AI_SYS+(p?(" Зараз клієнт дивиться на товар: «"+p.nm+"», ціна "+p.p+" грн (старa "+p.op+" грн), рейтинг "+p.r+"/5 ("+p.rv+" відгуків). Дай коротку відповідь про цей товар."):"");
+  var extra=p?("\n\nЗАРАЗ КЛІЄНТ ДИВИТЬСЯ НА ТОВАР: ID:"+p.id+" — «"+p.nm_uk+"», ціна "+p.p+" грн (стара "+p.op+" грн), рейтинг "+p.r+"/5 ("+p.rv+" відгуків). Пріоритетно відповідай про цей товар."):"";
+  var sysPd=buildAISys()+extra;
   var typ=document.createElement("div");typ.className="pd-amsg bot typing";typ.id="pd-ai-typ";
   typ.innerHTML="<div class=\"tdot\"></div><div class=\"tdot\"></div><div class=\"tdot\"></div>";
   var m=document.getElementById("pd-ai-msgs");m.appendChild(typ);m.scrollTop=99999;
