@@ -8,6 +8,7 @@ body{font-family:"Manrope",sans-serif;background:var(--bg);color:var(--dk)}
 .sp.open{right:0}
 .sp-hdr{padding:22px 26px;border-bottom:1px solid var(--gl2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:10px}
 .sp-hdr h2,.sp-hdtitle{font-size:19px;font-weight:800}
+.logo-mob{display:none}
 .sp-chat-tabs{display:none;align-items:center;gap:4px;flex:1}
 .sp-chat-tab{background:var(--gl);border:none;border-radius:16px;padding:6px 14px;font-size:13px;font-weight:700;color:var(--gt);cursor:pointer;font-family:"Manrope",sans-serif;transition:background .15s,color .15s;white-space:nowrap}
 .sp-chat-tab.active{background:var(--g);color:#fff}
