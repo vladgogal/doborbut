@@ -1661,6 +1661,21 @@ window.doSendPhoneSms = doSendPhoneSms;
 window.addAIBot = addAIBot;
 window.submitPdReview = submitPdReview;
 
+// ── MOBILE NAV ──
+window.mobNavActive = function(id) {
+  document.querySelectorAll('.mob-nav-item').forEach(function(el){ el.classList.remove('active'); });
+  var el = document.getElementById(id); if(el) el.classList.add('active');
+};
+function updateMobCartBadge() {
+  var b = document.getElementById('mob-cart-badge');
+  if(!b) return;
+  var n = cart.reduce(function(s,i){return s+(i.qty||1);},0);
+  b.textContent = n; b.style.display = n > 0 ? 'flex' : 'none';
+}
+var _origRenderCart = window.renderCart;
+window.renderCart = function(){ if(_origRenderCart) _origRenderCart(); updateMobCartBadge(); };
+document.addEventListener('DOMContentLoaded', updateMobCartBadge);
+
 // ============================================================
 // ІНІЦІАЛІЗАЦІЯ
 // ============================================================

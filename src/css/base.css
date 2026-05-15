@@ -1,7 +1,7 @@
 ﻿/* === BASE & COMPONENTS === */
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--g:#1FAF5A;--gd:#14883f;--gdd:#0d6330;--gl:#e8f7ef;--gm:#c8f0dc;--w:#fff;--bg:#f4f5f3;--gl2:#e8eae8;--gt:#6b7280;--dk:#1a1d1f;--dk2:#2a2e32;--red:#ff3b30;--or:#ff8c00;--r:14px;--rl:20px;--sh:0 2px 12px rgba(0,0,0,.07);--shl:0 8px 32px rgba(0,0,0,.13)}
-body{font-family:"Manrope",sans-serif;background:var(--bg);color:var(--dk);min-width:1280px}
+body{font-family:"Manrope",sans-serif;background:var(--bg);color:var(--dk)}
 .ovl{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:400;pointer-events:none;transition:background .25s}
 .ovl.open{background:rgba(0,0,0,.5);pointer-events:all}
 .sp{position:fixed;top:0;right:-540px;width:500px;height:100vh;background:var(--w);z-index:401;transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:var(--shl)}
