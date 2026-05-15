@@ -1,0 +1,16 @@
+const s = require('fs').readFileSync('src/main.js', 'utf8').replace(/\r\n/g, '\n');
+const i1 = s.indexOf('var dc=""');
+const i2 = s.indexOf('body.innerHTML=s+', i1);
+console.log('DELIVERY SECTION:\n', s.slice(i1, i2+20));
+const i3 = s.indexOf('if(coDelivery==="nova"){');
+const i4 = s.indexOf('\n  return addrSec', i3);
+console.log('\nFORM SECTION:\n', s.slice(i3, i4+20));
+const i5 = s.indexOf('function coNext2()');
+const i6 = s.indexOf('\nasync function coFinish', i5);
+console.log('\nCONEXT2:\n', s.slice(i5, i6));
+const i7 = s.indexOf('var dcost=coDelivery');
+const i8 = s.indexOf('\n', i7+5);
+console.log('\nDCOST1:', s.slice(i7, i8));
+const i9 = s.indexOf('var dcost=coDelivery', i7+10);
+const i10 = s.indexOf('\n', i9+5);
+console.log('DCOST2:', s.slice(i9, i10));
