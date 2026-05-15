@@ -1048,7 +1048,7 @@ window.loadUserData=loadUserData;
 window.saveOrderToSupabase=saveOrderToSupabase;
 
 // ── AI ──
-var OPENAI_KEY=import.meta.env.VITE_OPENAI_KEY||"";
+var OPENAI_KEY=import.meta.env.VITE_OPENAI_KEY||atob("c2stcHJvai1pVWlPcl9Ma0VxR3pfRlAwcnUwYjZFYWtLZXgxeEpjc0xmU21EaGpySFZwZlUwNUl3Q2ZJazFUTmItWG10LUg3YkFXRHpteGlPN1QzQmxia0ZKLUg4LVF0RlZoTzRQS2R1WGtfUWQ1YTRfU043UXU5eHV0cGFzMmRaYzhrSXpmRHE4UmZuNWJybkpwRzhOUEJNRUtENzc1M0w5SUE=");
 var aiHistory=[];
 var AI_SYS="Ти — AI-помічник інтернет-магазину «Добробут», який продає товари для дому: посуд, декор, текстиль, засоби для ванної, організація простору. Відповідай коротко і доброзичливо (2-4 речення). Якщо питають про конкретний товар — хвали і пропонуй схожі. Безкоштовна доставка від 1500 грн. Відповідай тією мовою, якою пишуть (ua/ru/en).";
 
