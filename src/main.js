@@ -1872,7 +1872,7 @@ async function loadProdsFromSupabase(){
     // Паралельно завантажуємо товари і категорії
     var[prodsRes,catsRes,pcRes]=await Promise.all([
       supabase.from("products").select("id,name,price,old_price,emoji,image_url,in_stock").eq("is_active",true).order("id",{ascending:false}),
-      supabase.from("categories").select("id,name,slug,emoji,parent_id").eq("is_active",true).order("sort_order"),
+      supabase.from("categories").select("id,name,slug,parent_id").eq("is_active",true).order("sort_order"),
       supabase.from("product_categories").select("product_id,category_id"),
     ]);
 
