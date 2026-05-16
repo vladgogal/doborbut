@@ -468,6 +468,7 @@ window.saveCategory = async function () {
     let finalImageUrl = catImgUrl;
     if (catImgFile) {
       finalImageUrl = await uploadImage(catImgFile, 'categories');
+      if (finalImageUrl === null) return; // storage not set up — modal shown by uploadImage
     }
 
     const payload = {
@@ -814,6 +815,7 @@ window.saveProduct = async function () {
     let finalImageUrl = prodImgUrl;
     if (prodImgFile) {
       finalImageUrl = await uploadImage(prodImgFile, 'products');
+      if (finalImageUrl === null) return; // storage not set up — modal shown by uploadImage
     }
 
     const payload = {
@@ -1016,14 +1018,35 @@ function _setAdmRead(sid, ts) { if (ts) localStorage.setItem(_admReadKey(sid), t
 async function loadChatSessions() {
   const { data } = await sb.from('chat_messages').select('*').order('created_at', { ascending: true });
   if (!data) return;
+
+  // Build sessions map first
   sessions = {};
   data.forEach(msg => {
     if (!sessions[msg.session_id]) sessions[msg.session_id] = [];
-    const lastRead = _getAdmRead(msg.session_id);
-    // A user message is "read" if admin has opened this session after it was sent.
-    msg._read = msg.sender !== 'user' || (lastRead !== '' && msg.created_at <= lastRead);
     sessions[msg.session_id].push(msg);
   });
+
+  const sids = Object.keys(sessions);
+  const hasAnyRecord = sids.some(sid => _getAdmRead(sid) !== '');
+
+  if (!hasAnyRecord && sids.length > 0) {
+    // First launch with new persistence code.
+    // Mark every existing session fully read so old history doesn't flood the badge.
+    sids.forEach(sid => {
+      const msgs = sessions[sid];
+      if (msgs.length) _setAdmRead(sid, msgs.at(-1).created_at);
+      msgs.forEach(m => { m._read = true; });
+    });
+  } else {
+    // Apply stored read markers per session.
+    sids.forEach(sid => {
+      const lastRead = _getAdmRead(sid);
+      sessions[sid].forEach(m => {
+        m._read = m.sender !== 'user' || (lastRead !== '' && m.created_at <= lastRead);
+      });
+    });
+  }
+
   renderSessions();
   updateChatBadge();
 }
@@ -1140,26 +1163,112 @@ function updateChatBadge() {
 }
 
 // ─── IMAGE UPLOAD ─────────────────────────────────────────
+async function ensureStorageBucket() {
+  const { error } = await sb.storage.createBucket(STORAGE_BUCKET, {
+    public: true,
+    fileSizeLimit: 10485760,
+  });
+  // 'Duplicate' / 'already exists' means bucket is already there — that's fine.
+  return !error || /duplicate|already exists/i.test(error.message || '');
+}
+
 async function uploadImage(file, folder) {
   const ext = file.name.split('.').pop();
   const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-  // Try Supabase Storage
-  const { data, error } = await sb.storage.from(STORAGE_BUCKET).upload(path, file, {
-    cacheControl: '3600',
-    upsert: false,
-  });
+  const doUpload = () => sb.storage.from(STORAGE_BUCKET).upload(path, file, { cacheControl: '3600', upsert: false });
+
+  let { data, error } = await doUpload();
 
   if (error) {
-    // Storage not set up — return object URL (temp, dev only)
-    console.warn('[admin] Storage error:', error.message);
-    toast('⚠️ Supabase Storage не налаштований. Використайте URL зображення.', 'error', 5000);
-    return URL.createObjectURL(file);
+    // Bucket might not exist — try to create it then retry once.
+    const ok = await ensureStorageBucket();
+    if (ok) {
+      ({ data, error } = await doUpload());
+    }
+  }
+
+  if (error) {
+    console.warn('[admin] Storage upload failed:', error.message);
+    showStorageSetupModal();
+    return null;
   }
 
   const { data: { publicUrl } } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
   return publicUrl;
 }
+
+function showStorageSetupModal() {
+  const sql = `-- Виконайте в Supabase → SQL Editor і перезавантажте сторінку:
+
+-- 1. Публічний бакет для зображень
+INSERT INTO storage.buckets (id, name, public, file_size_limit)
+VALUES ('store-images', 'store-images', true, 10485760)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- 2. Увімкнути RLS для storage.objects (якщо ще не)
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+
+-- 3. Завантаження — тільки авторизовані
+CREATE POLICY IF NOT EXISTS "store_img_insert" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'store-images');
+
+-- 4. Публічний перегляд
+CREATE POLICY IF NOT EXISTS "store_img_select" ON storage.objects
+  FOR SELECT TO public
+  USING (bucket_id = 'store-images');
+
+-- 5. Оновлення і видалення — тільки авторизовані
+CREATE POLICY IF NOT EXISTS "store_img_update" ON storage.objects
+  FOR UPDATE TO authenticated
+  USING (bucket_id = 'store-images')
+  WITH CHECK (bucket_id = 'store-images');
+
+CREATE POLICY IF NOT EXISTS "store_img_delete" ON storage.objects
+  FOR DELETE TO authenticated
+  USING (bucket_id = 'store-images');`;
+
+  let modal = document.getElementById('storage-setup-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'storage-setup-modal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `<div class="modal" style="max-width:580px">
+      <div class="modal-hdr" style="padding:18px 20px;border-bottom:1px solid var(--gl2);display:flex;align-items:center;justify-content:space-between">
+        <h3 style="font-size:16px;font-weight:800;margin:0">🗄️ Налаштування Supabase Storage</h3>
+        <button class="btn-icon" onclick="document.getElementById('storage-setup-modal').classList.remove('open')">✕</button>
+      </div>
+      <div style="padding:20px">
+        <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:1.5">
+          ⚠️ Бакет <b>store-images</b> не знайдено або доступ заборонений.<br>
+          Виконайте SQL нижче у
+          <a href="https://supabase.com/dashboard" target="_blank" style="color:var(--g);font-weight:700">Supabase → SQL Editor</a>,
+          після чого перезавантажте сторінку.
+        </div>
+        <textarea id="storage-sql-area" readonly style="width:100%;height:220px;font-family:monospace;font-size:11px;border:1px solid var(--gl2);border-radius:8px;padding:10px;resize:none;background:#f8f9fa;color:#1a1d1f">${sql}</textarea>
+        <div style="display:flex;gap:10px;margin-top:12px">
+          <button class="btn btn-primary" onclick="copyStorageSql()" style="flex:1">📋 Копіювати SQL</button>
+          <button class="btn" onclick="document.getElementById('storage-setup-modal').classList.remove('open')" style="flex:1">Закрити</button>
+        </div>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+  }
+  modal.classList.add('open');
+}
+
+window.copyStorageSql = function () {
+  const el = document.getElementById('storage-sql-area');
+  if (el) {
+    navigator.clipboard?.writeText(el.value).catch(() => {
+      el.select();
+      document.execCommand('copy');
+    });
+    toast('📋 SQL скопійовано!', 'success');
+  }
+};
 
 // ─── SETUP SQL ────────────────────────────────────────────
 function renderSetupCard(section) {
