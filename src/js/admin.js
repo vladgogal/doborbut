@@ -1209,23 +1209,25 @@ ON CONFLICT (id) DO UPDATE SET public = true;
 -- 2. Увімкнути RLS для storage.objects (якщо ще не)
 ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
 
--- 3. Завантаження — тільки авторизовані
-CREATE POLICY IF NOT EXISTS "store_img_insert" ON storage.objects
+-- 3. Policies (спочатку видаляємо якщо є, потім створюємо)
+DROP POLICY IF EXISTS "store_img_insert" ON storage.objects;
+CREATE POLICY "store_img_insert" ON storage.objects
   FOR INSERT TO authenticated
   WITH CHECK (bucket_id = 'store-images');
 
--- 4. Публічний перегляд
-CREATE POLICY IF NOT EXISTS "store_img_select" ON storage.objects
+DROP POLICY IF EXISTS "store_img_select" ON storage.objects;
+CREATE POLICY "store_img_select" ON storage.objects
   FOR SELECT TO public
   USING (bucket_id = 'store-images');
 
--- 5. Оновлення і видалення — тільки авторизовані
-CREATE POLICY IF NOT EXISTS "store_img_update" ON storage.objects
+DROP POLICY IF EXISTS "store_img_update" ON storage.objects;
+CREATE POLICY "store_img_update" ON storage.objects
   FOR UPDATE TO authenticated
   USING (bucket_id = 'store-images')
   WITH CHECK (bucket_id = 'store-images');
 
-CREATE POLICY IF NOT EXISTS "store_img_delete" ON storage.objects
+DROP POLICY IF EXISTS "store_img_delete" ON storage.objects;
+CREATE POLICY "store_img_delete" ON storage.objects
   FOR DELETE TO authenticated
   USING (bucket_id = 'store-images');`;
 
