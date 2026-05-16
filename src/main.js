@@ -1022,6 +1022,7 @@ async function doSendPhoneSms(){
   setTimeout(function(){var f=document.querySelector(".otp-inp");if(f)f.focus();},100);
 }
 async function doLogout(){
+  _supMsgs=[];aiHistory=[];aiInit=false;
   loggedIn=false;currentUserEmail="";currentUserName="Покупець";
   _userOrders=[];_userProfile={};_userAddresses=[];
   if(supabase)await supabase.auth.signOut();
@@ -1135,6 +1136,7 @@ function sendAIMsg(t){
   if(aiHistory.length>20)aiHistory=aiHistory.slice(-20);
   callGPT([{role:"system",content:buildAISys()}].concat(aiHistory)).then(function(reply){
     aiHistory.push({role:"assistant",content:reply});
+    _saveAIChat();
     var el=document.getElementById("ai-typ");if(el)el.remove();
     addAIBot(reply);
   }).catch(function(err){
@@ -1722,6 +1724,50 @@ window.mobNavActive = function(id) {
 
 // ── SUPPORT CHAT ──
 var _supMsgs = [];
+
+function _chatSupKey(){ return currentUserEmail ? 'chat_sup_'+currentUserEmail : null; }
+function _chatAIKey(){  return currentUserEmail ? 'chat_ai_'+currentUserEmail  : null; }
+
+function _saveSupChat(){
+  var k=_chatSupKey(); if(!k) return;
+  try{ localStorage.setItem(k, JSON.stringify(_supMsgs)); }catch(e){}
+}
+function _saveAIChat(){
+  var k=_chatAIKey(); if(!k) return;
+  try{ localStorage.setItem(k, JSON.stringify(aiHistory)); }catch(e){}
+}
+
+function _loadSupChat(){
+  var k=_chatSupKey(); if(!k) return;
+  try{
+    var saved=JSON.parse(localStorage.getItem(k));
+    if(Array.isArray(saved)&&saved.length){ _supMsgs=saved; renderSupMessages(); }
+  }catch(e){}
+}
+function _loadAIChat(){
+  var k=_chatAIKey(); if(!k) return;
+  try{
+    var saved=JSON.parse(localStorage.getItem(k));
+    if(!Array.isArray(saved)||!saved.length) return;
+    aiHistory=saved;
+    aiInit=true;
+    document.getElementById("cnotif").style.display="none";
+    var qh=""; AI_QUICK.forEach(function(q){qh+="<button class=\"aiq\" onclick=\"sendAIMsg('"+q+"')\">"+q+"</button>";});
+    document.getElementById("ai-quick-btns").innerHTML=qh;
+    var c=document.getElementById("ai-msgs"); if(!c) return;
+    c.innerHTML="";
+    addAIBot(getCurrentLangPack().aiWelcome);
+    saved.forEach(function(msg){
+      var d=document.createElement("div");
+      d.className="ai-msg "+(msg.role==="user"?"usr":"bot");
+      if(msg.role==="user") d.textContent=msg.content;
+      else d.innerHTML=parseAIReply(msg.content);
+      c.appendChild(d);
+    });
+    c.scrollTop=99999;
+  }catch(e){}
+}
+
 function renderSupMessages(){
   var m = document.getElementById('sup-msgs');
   if(!m) return;
@@ -1743,9 +1789,11 @@ window.sendSupportMsg = function(){
   inp.value = '';
   _supMsgs.push({from:'user', text:text});
   renderSupMessages();
+  _saveSupChat();
   setTimeout(function(){
     _supMsgs.push({from:'bot', text:'✅ Повідомлення прийнято! Оператор відповість найближчим часом.'});
     renderSupMessages();
+    _saveSupChat();
   }, 800);
 };
 window.handleSupportFile = function(event){
@@ -1753,9 +1801,11 @@ window.handleSupportFile = function(event){
   if(!file) return;
   _supMsgs.push({from:'user', text:'📎 ' + file.name});
   renderSupMessages();
+  _saveSupChat();
   setTimeout(function(){
     _supMsgs.push({from:'bot', text:'✅ Файл отримано.'});
     renderSupMessages();
+    _saveSupChat();
   }, 600);
 };
 
@@ -1958,6 +2008,8 @@ if(supabase){
       currentUserName=(u.user_metadata&&u.user_metadata.full_name)||u.email.split("@")[0]||"Покупець";
       renderAcc();
       loadUserData();
+      _loadSupChat();
+      _loadAIChat();
       if(document.getElementById("pd-review-write"))renderPdReviewWriter();
     }else{
       if(loggedIn){
