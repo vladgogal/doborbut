@@ -1175,18 +1175,17 @@ function pCard(p){
   var disc=Math.round((1-p.p/p.op)*100);
   var bc=p.b==="new"?"nb":p.b==="hot"?"hb":"";
   var bl=p.b==="new"?tr.badgeNew:p.b==="hot"?tr.badgeHot:tr.badgeDiscount;
-  var sid="'"+p.id+"'"; // safe ID для onclick — в лапках, працює і з UUID і з числом
   var isFav=favs.some(function(x){return String(x.id)===String(p.id);});
-  var h="<div class=\"pcard\" onclick=\"openMod("+sid+")\">";
+  var h="<div class=\"pcard\" data-pid=\""+p.id+"\">";
   h+="<div class=\"pimg\"><div class=\"pimg-inner\">"+p.e+"</div>";
   h+="<span class=\"pbadge "+bc+"\">"+bl+" -"+disc+"%</span>";
-  h+="<button class=\"pfav"+(isFav?" on":"")+"\" data-id=\""+p.id+"\" onclick=\"event.stopPropagation();toggleFav("+sid+");this.classList.toggle('on')\">";
+  h+="<button class=\"pfav"+(isFav?" on":"")+"\" data-id=\""+p.id+"\" data-action=\"fav\">";
   h+="<svg viewBox=\"0 0 24 24\"><path d=\"M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z\"/></svg></button>";
   h+="</div>";
   h+="<div class=\"pbody\"><div class=\"pname\">"+p.nm+"</div>";
   h+="<div class=\"prat\"><span class=\"pstars\">"+"★".repeat(Math.floor(p.r))+"☆".repeat(5-Math.floor(p.r))+"</span><span class=\"prc\">("+p.rv+")</span></div>";
   h+="<div class=\"pprices\"><span class=\"ppnew\">"+p.p+" "+tr.currency+"</span><span class=\"ppold\">"+p.op+" "+tr.currency+"</span><span class=\"pdisc\">-"+disc+"%</span></div>";
-  h+="<button class=\"pqa\" onclick=\"event.stopPropagation();addToCart("+sid+")\">"+tr.addToCart+"</button>";
+  h+="<button class=\"pqa\" data-pid=\""+p.id+"\" data-action=\"cart\">"+tr.addToCart+"</button>";
   h+="</div></div>";return h;
 }
 
@@ -1940,6 +1939,16 @@ if(window.location.search.includes("payment=success")){
   history.replaceState(null,"",window.location.pathname);
   setTimeout(function(){showToast("✅ Оплата успішна! Замовлення оформлено.");},600);
 }
+// ── EVENT DELEGATION для карток товарів (надійно на iOS/Android) ──
+document.addEventListener("click",function(e){
+  var cartBtn=e.target.closest("[data-action='cart']");
+  if(cartBtn){e.stopPropagation();addToCart(cartBtn.dataset.pid);return;}
+  var favBtn=e.target.closest("[data-action='fav']");
+  if(favBtn){e.stopPropagation();toggleFav(favBtn.dataset.id);favBtn.classList.toggle("on",favs.some(function(x){return String(x.id)===String(favBtn.dataset.id);}));return;}
+  var card=e.target.closest(".pcard[data-pid]");
+  if(card){openMod(card.dataset.pid);}
+});
+
 initAnalytics();
 setLang(getSavedLang(),true);
 loadProdsFromSupabase();
