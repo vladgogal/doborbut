@@ -1278,15 +1278,6 @@ function showToast(msg){
   t._t=setTimeout(function(){t.classList.remove("show");},2800);
 }
 
-// ── TIMER ──
-var timerSec=14*3600+27*60+43;
-setInterval(function(){
-  timerSec=Math.max(0,timerSec-1);
-  var h=Math.floor(timerSec/3600),m=Math.floor((timerSec%3600)/60),s=timerSec%60;
-  document.getElementById("th").textContent=String(h).padStart(2,"0");
-  document.getElementById("tm").textContent=String(m).padStart(2,"0");
-  document.getElementById("ts").textContent=String(s).padStart(2,"0");
-},1000);
 
 function setText(sel,text){var el=document.querySelector(sel);if(el)el.textContent=text;}
 function setHtml(sel,html){var el=document.querySelector(sel);if(el)el.innerHTML=html;}
@@ -1435,11 +1426,6 @@ function renderHome(){
   var pg=document.getElementById("pgrid");
   if(pg)pg.innerHTML=PRODS.length?PRODS.slice(0,8).map(pCard).join(""):"<div style=\"grid-column:1/-1;text-align:center;padding:40px;color:var(--gt)\">\u0414\u043E\u0434\u0430\u0439\u0442\u0435 \u0442\u043E\u0432\u0430\u0440\u0438 \u0432 \u0430\u0434\u043C\u0456\u043D-\u043F\u0430\u043D\u0435\u043B\u0456</div>";
 
-  var dealH="";
-  PRODS.slice(0,4).forEach(function(p){
-    dealH+="<div class=\"db-prod\" onclick=\"openMod("+p.id+")\"><div class=\"dp-em\">"+p.e+"</div><div><div class=\"dp-nm\">"+p.nm+"</div><div class=\"dp-pr\">"+p.p+" \u0433\u0440\u043D</div><div class=\"dp-old\">"+p.op+" \u0433\u0440\u043D</div></div></div>";
-  });
-  var dbr=document.getElementById("db-right");if(dbr)dbr.innerHTML=dealH;
   var npg=document.getElementById("npgrid");if(npg)npg.innerHTML=PRODS.slice(8).map(pCard).join("");
   document.getElementById("reviews-home").innerHTML=ALL_REVIEWS.slice(0,3).map(rCard).join("");
 }

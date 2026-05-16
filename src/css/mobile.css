@@ -18,7 +18,7 @@
   .logo-sb{display:none}
   .logo-nm{display:none}
   .logo-img{display:none !important}
-  .logo-mob{display:block;width:38px;height:38px;flex-shrink:0}
+  .logo-mob{display:block;width:40px;height:40px;object-fit:contain;flex-shrink:0}
 
   /* ── SEARCH — hide animated placeholder ── */
   .srch-ph{display:none !important}
