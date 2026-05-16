@@ -318,6 +318,7 @@ async function coFinish(){
 }
 // ── FAVORITES ──
 function toggleFav(pid){
+  if(!loggedIn){showToast("❤️ Увійдіть в акаунт щоб додавати в обране");openPanel("acc-panel");return;}
   var p=PRODS.find(function(x){return String(x.id)===String(pid);});if(!p)return;
   var idx=favs.findIndex(function(x){return String(x.id)===String(pid);});
   if(idx>=0){favs.splice(idx,1);showToast("\uD83D\uDC94 \u0412\u0438\u0434\u0430\u043B\u0435\u043D\u043E \u0437 \u043E\u0431\u0440\u0430\u043D\u043E\u0433\u043E");}
