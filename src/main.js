@@ -1984,14 +1984,21 @@ if(window.location.search.includes("payment=success")){
 
 // iOS Safari: resize open panels when virtual keyboard changes visual viewport
 if(window.visualViewport){
-  window.visualViewport.addEventListener('resize',function(){
-    var h=window.visualViewport.height+'px';
-    document.querySelectorAll('.sp.open').forEach(function(el){el.style.height=h;});
-  });
-  window.visualViewport.addEventListener('scroll',function(){
-    var h=window.visualViewport.height+'px';
-    document.querySelectorAll('.sp.open').forEach(function(el){el.style.height=h;});
-  });
+  function _vpResize(){
+    var vv=window.visualViewport;
+    var kbH=window.innerHeight-vv.height-vv.offsetTop;
+    document.querySelectorAll('.sp.open').forEach(function(el){
+      if(kbH>50){
+        el.style.top=vv.offsetTop+'px';
+        el.style.height=vv.height+'px';
+      }else{
+        el.style.top='';
+        el.style.height='';
+      }
+    });
+  }
+  window.visualViewport.addEventListener('resize',_vpResize);
+  window.visualViewport.addEventListener('scroll',_vpResize);
 }
 
 initAnalytics();
