@@ -33,6 +33,7 @@ body{font-family:"Manrope",sans-serif;background:var(--bg);color:var(--dk)}
 .srch-ico{padding:0 10px 0 16px;flex-shrink:0;display:flex}
 .srch-ico svg{width:17px;height:17px;stroke:var(--gt);fill:none;stroke-width:2.2;stroke-linecap:round}
 .srch-box:focus-within .srch-ico svg{stroke:var(--g)}
+.srch-box:focus-within .srch-ph{display:none}
 .srch-area{flex:1;position:relative;height:100%}
 .srch-input{position:absolute;inset:0;width:100%;height:100%;border:none;background:transparent;outline:none;font-size:14px;font-weight:500;color:var(--dk);padding:0;z-index:2;font-family:"Manrope",sans-serif}
 .srch-ph{position:absolute;top:50%;left:0;transform:translateY(-50%);pointer-events:none;z-index:1;font-size:14px;font-weight:500;display:flex;align-items:center}

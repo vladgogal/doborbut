@@ -1982,6 +1982,18 @@ if(window.location.search.includes("payment=success")){
   setTimeout(function(){showToast("✅ Оплата успішна! Замовлення оформлено.");},600);
 }
 
+// iOS Safari: resize open panels when virtual keyboard changes visual viewport
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',function(){
+    var h=window.visualViewport.height+'px';
+    document.querySelectorAll('.sp.open').forEach(function(el){el.style.height=h;});
+  });
+  window.visualViewport.addEventListener('scroll',function(){
+    var h=window.visualViewport.height+'px';
+    document.querySelectorAll('.sp.open').forEach(function(el){el.style.height=h;});
+  });
+}
+
 initAnalytics();
 setLang(getSavedLang(),true);
 loadProdsFromSupabase();

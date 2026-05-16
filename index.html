@@ -38,7 +38,7 @@
 <div class="srch-wrap"><div class="srch-box">
   <div class="srch-ico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
   <div class="srch-area" onclick="document.getElementById('srinput').focus()">
-    <input type="text" class="srch-input" id="srinput" autocomplete="off" placeholder="Пошук товарів..." oninput="onSrInput()" onkeydown="if(event.key==='Enter')doSearch()"/>
+    <input type="text" class="srch-input" id="srinput" autocomplete="off" oninput="onSrInput()" onkeydown="if(event.key==='Enter')doSearch()"/>
     <div class="srch-ph" id="srph"><span class="st">Знайти </span><span class="dy" id="srph-dy"></span><span class="cur"></span></div>
   </div>
   <button class="srch-btn" onclick="doSearch()">🔍 Пошук</button>
