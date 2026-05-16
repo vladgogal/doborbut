@@ -1170,22 +1170,24 @@ document.getElementById("mfavbtn").onclick=function(){if(currentProdId)toggleFav
 function chQty(d){qty=Math.max(1,Math.min(99,qty+d));document.getElementById("qty-val").textContent=qty;}
 
 // ── PRODUCT CARDS ──
+window._lastBtnMs=0;
 function pCard(p){
   var tr=getCurrentLangPack();
   var disc=Math.round((1-p.p/p.op)*100);
   var bc=p.b==="new"?"nb":p.b==="hot"?"hb":"";
   var bl=p.b==="new"?tr.badgeNew:p.b==="hot"?tr.badgeHot:tr.badgeDiscount;
   var isFav=favs.some(function(x){return String(x.id)===String(p.id);});
-  var h="<div class=\"pcard\" data-pid=\""+p.id+"\">";
+  var pid="'"+p.id+"'";
+  var h="<div class=\"pcard\" onclick=\"openMod("+pid+")\">";
   h+="<div class=\"pimg\"><div class=\"pimg-inner\">"+p.e+"</div>";
   h+="<span class=\"pbadge "+bc+"\">"+bl+" -"+disc+"%</span>";
-  h+="<button class=\"pfav"+(isFav?" on":"")+"\" data-id=\""+p.id+"\" data-action=\"fav\">";
+  h+="<button class=\"pfav"+(isFav?" on":"")+"\" onclick=\"window._lastBtnMs=Date.now();event.stopPropagation();toggleFav("+pid+");this.classList.toggle('on',favs.some(function(x){return String(x.id)==="+pid+";}))\">";
   h+="<svg viewBox=\"0 0 24 24\"><path d=\"M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z\"/></svg></button>";
   h+="</div>";
   h+="<div class=\"pbody\"><div class=\"pname\">"+p.nm+"</div>";
   h+="<div class=\"prat\"><span class=\"pstars\">"+"★".repeat(Math.floor(p.r))+"☆".repeat(5-Math.floor(p.r))+"</span><span class=\"prc\">("+p.rv+")</span></div>";
   h+="<div class=\"pprices\"><span class=\"ppnew\">"+p.p+" "+tr.currency+"</span><span class=\"ppold\">"+p.op+" "+tr.currency+"</span><span class=\"pdisc\">-"+disc+"%</span></div>";
-  h+="<button class=\"pqa\" data-pid=\""+p.id+"\" data-action=\"cart\">"+tr.addToCart+"</button>";
+  h+="<button class=\"pqa\" onclick=\"window._lastBtnMs=Date.now();event.stopPropagation();addToCart("+pid+")\">"+tr.addToCart+"</button>";
   h+="</div></div>";return h;
 }
 
@@ -1939,37 +1941,6 @@ if(window.location.search.includes("payment=success")){
   history.replaceState(null,"",window.location.pathname);
   setTimeout(function(){showToast("✅ Оплата успішна! Замовлення оформлено.");},600);
 }
-// ── EVENT DELEGATION для карток товарів ──
-// Використовуємо ручний обхід DOM (сумісно з iOS Safari, старим Android і SVG-елементами)
-function _cardDelegate(e){
-  var el=e.target;
-  // Піднімаємося по DOM поки не знайдемо потрібний елемент
-  while(el&&el!==document.body){
-    var action=el.getAttribute&&el.getAttribute("data-action");
-    if(action==="cart"){addToCart(el.getAttribute("data-pid"));return;}
-    if(action==="fav"){
-      var fid=el.getAttribute("data-id");
-      toggleFav(fid);
-      el.classList.toggle("on",favs.some(function(x){return String(x.id)===String(fid);}));
-      return;
-    }
-    // Якщо це картка і ми не прийшли з кнопки — відкрити товар
-    if(el.getAttribute&&el.getAttribute("data-pid")&&el.classList&&el.classList.contains("pcard")){
-      openMod(el.getAttribute("data-pid"));return;
-    }
-    el=el.parentElement;
-  }
-}
-document.addEventListener("click",_cardDelegate);
-// Також touchend для iOS — прибирає 300ms затримку і збільшує надійність
-document.addEventListener("touchend",function(e){
-  var el=e.target;
-  while(el&&el!==document.body){
-    var action=el.getAttribute&&el.getAttribute("data-action");
-    if(action==="cart"||action==="fav"){e.preventDefault();_cardDelegate(e);return;}
-    el=el.parentElement;
-  }
-},{passive:false});
 
 initAnalytics();
 setLang(getSavedLang(),true);
@@ -2203,7 +2174,7 @@ function pdAsk(q){
     pdAiMsg("bot","⚠️ "+err.message);
   });
 }
-function openMod(id){openProdPage(id);}
+function openMod(id){if(Date.now()-window._lastBtnMs<400)return;openProdPage(id);}
 
 var fltCat="all",fltSort="popular",fltMinP=0,fltMaxP=2000,FLT_PMIN=0,FLT_PMAX=2000,fltDrag=null,fltInStock=false,fltSale=false,fltSearch="";
 window.toggleInStock=function(){
