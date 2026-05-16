@@ -3,87 +3,893 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Адмін — Чат підтримки</title>
+<title>Добробут — Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--g:#1FAF5A;--gl2:#e8eae8;--gt:#6b7280;--dk:#1a1d1f;--bg:#f4f5f3;--w:#fff;--red:#ff3b30;--blue:#2563eb;--r:12px}
-body{font-family:"Manrope",sans-serif;background:var(--bg);color:var(--dk);height:100vh;display:flex;flex-direction:column}
+:root{
+  --g:#1FAF5A;--g2:#18994e;--gl:#e8f7ef;--gl2:#e8eae8;
+  --gt:#6b7280;--dk:#1a1d1f;--bg:#f4f5f3;--w:#fff;
+  --red:#ef4444;--blue:#2563eb;--blue2:#1d4ed8;--bluel:#eff6ff;
+  --orange:#f97316;--sidebar:240px;--topbar:58px;--mobnav:62px;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --sh2:0 4px 24px rgba(0,0,0,.1)
+}
+body{font-family:"Manrope",sans-serif;background:var(--bg);color:var(--dk);height:100vh;height:100svh;overflow:hidden;display:flex;flex-direction:column}
 
-/* AUTH */
-#auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:16px}
-#auth-screen h1{font-size:22px;font-weight:800}
-#pw-inp{height:44px;border:2px solid var(--gl2);border-radius:10px;padding:0 16px;font-size:15px;font-family:inherit;outline:none;width:280px;transition:border-color .2s}
-#pw-inp:focus{border-color:var(--blue)}
-#auth-screen button{height:44px;background:var(--blue);color:#fff;border:none;border-radius:10px;padding:0 28px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
-#auth-screen button:hover{background:#1d4ed8}
+/* ══ SCROLLBAR ══ */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:3px}
 
-/* LAYOUT */
+/* ══ AUTH ══ */
+#auth-screen{display:flex;align-items:center;justify-content:center;flex:1;padding:20px;background:var(--bg)}
+.auth-card{background:var(--w);border-radius:24px;padding:44px 36px;width:100%;max-width:400px;box-shadow:var(--sh2)}
+.auth-logo{width:64px;height:64px;background:linear-gradient(135deg,#1FAF5A,#0d8a3e);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 22px;font-size:32px;box-shadow:0 8px 24px rgba(31,175,90,.3)}
+.auth-card h1{font-size:22px;font-weight:800;text-align:center;margin-bottom:5px}
+.auth-sub{font-size:13px;color:var(--gt);text-align:center;margin-bottom:28px}
+.auth-field{width:100%;height:48px;border:2px solid var(--gl2);border-radius:12px;padding:0 16px;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;margin-bottom:12px;display:block;background:var(--w)}
+.auth-field:focus{border-color:var(--blue)}
+.auth-field.err{border-color:var(--red);animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.auth-btn{width:100%;height:48px;background:var(--blue);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.auth-btn:hover{background:var(--blue2)}
+.auth-btn:disabled{opacity:.6;cursor:default}
+.auth-err{color:var(--red);font-size:13px;text-align:center;margin-top:12px;line-height:1.5;min-height:18px}
+.auth-hint{margin-top:16px;padding:14px;background:var(--bluel);border-radius:10px;font-size:12px;color:#1e40af;line-height:1.6}
+
+/* ══ ADMIN APP SHELL ══ */
 #admin-app{display:none;flex:1;overflow:hidden}
-.sidebar{width:300px;background:var(--w);border-right:1px solid var(--gl2);display:flex;flex-direction:column;flex-shrink:0}
-.sidebar-hdr{padding:18px 20px;border-bottom:1px solid var(--gl2);display:flex;align-items:center;justify-content:space-between}
-.sidebar-hdr h2{font-size:17px;font-weight:800}
-.logout-btn{font-size:12px;color:var(--gt);cursor:pointer;border:none;background:none;font-family:inherit}
-.logout-btn:hover{color:var(--red)}
+
+/* ══ SIDEBAR ══ */
+.sidebar{width:var(--sidebar);background:var(--w);border-right:1px solid var(--gl2);display:flex;flex-direction:column;height:100%;flex-shrink:0;z-index:50;transition:transform .25s cubic-bezier(.4,0,.2,1)}
+.sb-header{padding:18px 16px 14px;border-bottom:1px solid var(--gl2);display:flex;align-items:center;gap:10px}
+.sb-logo{width:36px;height:36px;background:linear-gradient(135deg,#1FAF5A,#0d8a3e);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.sb-brand{flex:1;min-width:0}
+.sb-brand-name{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-brand-sub{font-size:10px;color:var(--gt);text-transform:uppercase;letter-spacing:.5px}
+.sb-close-btn{display:none;background:none;border:none;color:var(--gt);cursor:pointer;padding:4px;font-size:18px;line-height:1}
+
+.sb-nav{flex:1;overflow-y:auto;padding:10px 10px}
+.sb-section{font-size:9px;font-weight:700;color:var(--gt);text-transform:uppercase;letter-spacing:.6px;padding:12px 8px 6px;margin-top:4px}
+.sb-section:first-child{padding-top:4px;margin-top:0}
+.nav-btn{width:100%;display:flex;align-items:center;gap:9px;padding:9px 10px;border:none;background:none;border-radius:9px;font-family:inherit;font-size:13px;font-weight:600;color:var(--gt);cursor:pointer;transition:all .14s;text-align:left;position:relative}
+.nav-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;transition:stroke .14s}
+.nav-btn:hover{background:var(--bg);color:var(--dk)}
+.nav-btn.active{background:var(--bluel);color:var(--blue)}
+.nav-btn .nb-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
+
+.sb-footer{padding:12px 10px;border-top:1px solid var(--gl2)}
+.sb-user{display:flex;align-items:center;gap:9px;padding:8px 8px;border-radius:9px;margin-bottom:6px}
+.sb-user-avatar{width:32px;height:32px;background:var(--bluel);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.sb-user-email{font-size:11px;font-weight:600;color:var(--dk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+.sb-user-role{font-size:10px;color:var(--gt)}
+.logout-btn{width:100%;display:flex;align-items:center;gap:8px;padding:9px 10px;border:none;background:none;border-radius:9px;font-family:inherit;font-size:13px;font-weight:600;color:var(--gt);cursor:pointer;transition:all .14s}
+.logout-btn:hover{background:#fef2f2;color:var(--red)}
+.logout-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+
+/* ══ MAIN ══ */
+.adm-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* ══ TOPBAR ══ */
+.topbar{height:var(--topbar);background:var(--w);border-bottom:1px solid var(--gl2);display:flex;align-items:center;gap:12px;padding:0 20px;flex-shrink:0}
+.topbar-menu-btn{display:none;background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:var(--dk);flex-shrink:0}
+.topbar-menu-btn:hover{background:var(--bg)}
+.topbar-menu-btn svg{display:block}
+.topbar-title{font-size:16px;font-weight:800;flex:1}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+
+/* ══ PAGES ══ */
+.pages-wrap{flex:1;overflow-y:auto;padding:22px 22px 30px}
+.adm-page{display:none}
+.adm-page.active{display:block}
+#page-chats.active{display:flex;flex-direction:column;height:100%;overflow:hidden}
+
+/* ══ BUTTONS ══ */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:0 16px;height:36px;border:none;border-radius:9px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:all .14s;white-space:nowrap;flex-shrink:0}
+.btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue2)}
+.btn-green{background:var(--g);color:#fff}
+.btn-green:hover{background:var(--g2)}
+.btn-ghost{background:var(--bg);color:var(--dk)}
+.btn-ghost:hover{background:var(--gl2)}
+.btn-danger{background:#fef2f2;color:var(--red)}
+.btn-danger:hover{background:#fee2e2}
+.btn-sm{height:30px;padding:0 12px;font-size:12px}
+.btn-icon{width:32px;height:32px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;border:none;cursor:pointer;background:var(--bg);color:var(--gt);transition:all .14s;flex-shrink:0}
+.btn-icon:hover{background:var(--gl2);color:var(--dk)}
+.btn-icon.danger:hover{background:#fee2e2;color:var(--red)}
+.btn-icon svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ══ STATS DASHBOARD ══ */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.stat-card{background:var(--w);border-radius:14px;padding:18px;display:flex;align-items:center;gap:14px;box-shadow:var(--sh);cursor:pointer;transition:box-shadow .15s}
+.stat-card:hover{box-shadow:var(--sh2)}
+.stat-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.stat-val{font-size:26px;font-weight:800;line-height:1;margin-bottom:3px}
+.stat-lbl{font-size:12px;color:var(--gt);font-weight:600}
+
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.dash-card{background:var(--w);border-radius:14px;padding:18px;box-shadow:var(--sh)}
+.dash-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.dash-card-title{font-size:14px;font-weight:800}
+.dash-card-link{background:none;border:none;color:var(--blue);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.qa-btn{background:var(--bg);border:1.5px solid var(--gl2);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:var(--dk);transition:all .14s;text-align:left}
+.qa-btn:hover{background:var(--bluel);border-color:var(--blue);color:var(--blue)}
+.qa-icon{font-size:20px;line-height:1}
+
+/* ══ PAGE HEADER ══ */
+.page-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap}
+.page-hdr-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+.page-ttl{font-size:17px;font-weight:800}
+.page-sub{font-size:12px;color:var(--gt);margin-top:1px}
+
+/* ══ FILTERS BAR ══ */
+.flt-bar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.flt-search-wrap{position:relative;flex:1;min-width:180px;max-width:320px}
+.flt-search-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--gt);fill:none;stroke-width:2;stroke-linecap:round;pointer-events:none}
+.flt-search{width:100%;height:36px;border:1.5px solid var(--gl2);border-radius:9px;padding:0 12px 0 32px;font-size:13px;font-family:inherit;outline:none;background:var(--w);transition:border-color .2s}
+.flt-search:focus{border-color:var(--blue)}
+.flt-sel{height:36px;border:1.5px solid var(--gl2);border-radius:9px;padding:0 10px;font-size:12px;font-family:inherit;outline:none;background:var(--w);cursor:pointer;color:var(--dk);transition:border-color .2s}
+.flt-sel:focus{border-color:var(--blue)}
+.flt-reset{background:none;border:none;color:var(--gt);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;padding:0 4px;white-space:nowrap}
+.flt-reset:hover{color:var(--red)}
+
+/* ══ BULK BAR ══ */
+.bulk-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;margin-bottom:10px;flex-wrap:wrap}
+.bulk-count{font-size:13px;font-weight:700;margin-right:4px}
+
+/* ══ TABLE ══ */
+.tbl-wrap{background:var(--w);border-radius:14px;border:1px solid var(--gl2);overflow:hidden;box-shadow:var(--sh)}
+table.adm-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.adm-tbl th{text-align:left;padding:11px 14px;font-size:11px;font-weight:700;color:var(--gt);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--gl2);background:var(--bg);white-space:nowrap}
+.adm-tbl td{padding:11px 14px;border-bottom:1px solid var(--gl2);vertical-align:middle}
+.adm-tbl tr:last-child td{border-bottom:none}
+.adm-tbl tr:hover td{background:#fafafa}
+.adm-tbl .th-chk,.adm-tbl .td-chk{width:36px;padding-right:0}
+.adm-tbl .th-act,.adm-tbl .td-act{width:80px;text-align:right;padding-left:4px}
+.td-act-wrap{display:flex;align-items:center;justify-content:flex-end;gap:4px;opacity:0;transition:opacity .1s}
+.adm-tbl tr:hover .td-act-wrap{opacity:1}
+.tbl-empty{text-align:center;color:var(--gt);padding:48px;font-size:13px}
+.tbl-loading{text-align:center;color:var(--gt);padding:32px;font-size:13px}
+
+/* Product cell */
+.prod-cell{display:flex;align-items:center;gap:10px}
+.prod-thumb{width:38px;height:38px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden;border:1px solid var(--gl2)}
+.prod-thumb img{width:100%;height:100%;object-fit:cover}
+.prod-name{font-size:13px;font-weight:700;line-height:1.3;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+.prod-sku{font-size:11px;color:var(--gt)}
+
+/* Category chips */
+.cat-chips{display:flex;flex-wrap:wrap;gap:4px}
+.cat-chip{background:var(--bluel);color:var(--blue);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.cat-chip-green{background:var(--gl);color:var(--g)}
+
+/* Status badges */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%}
+.badge-green{background:var(--gl);color:#15803d}.badge-green::before{background:#15803d}
+.badge-red{background:#fef2f2;color:var(--red)}.badge-red::before{background:var(--red)}
+.badge-gray{background:var(--bg);color:var(--gt)}.badge-gray::before{background:var(--gt)}
+.badge-blue{background:var(--bluel);color:var(--blue)}.badge-blue::before{background:var(--blue)}
+.badge-orange{background:#fff7ed;color:var(--orange)}.badge-orange::before{background:var(--orange)}
+
+/* Toggle switch in table */
+.tgl{position:relative;width:34px;height:19px;display:inline-block;flex-shrink:0}
+.tgl input{opacity:0;width:0;height:0;position:absolute}
+.tgl-slider{position:absolute;inset:0;background:#d1d5db;border-radius:10px;cursor:pointer;transition:.2s}
+.tgl-slider::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:50%;transform:translateY(-50%);background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tgl input:checked + .tgl-slider{background:var(--g)}
+.tgl input:checked + .tgl-slider::before{transform:translateY(-50%) translateX(15px)}
+
+/* ══ PAGINATION ══ */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 0;font-size:12px;color:var(--gt)}
+.pagination-btns{display:flex;gap:4px}
+.pag-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--gl2);background:var(--w);border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;color:var(--gt);transition:all .12s;font-family:inherit}
+.pag-btn:hover{border-color:var(--blue);color:var(--blue)}
+.pag-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.pag-btn:disabled{opacity:.4;cursor:default;pointer-events:none}
+
+/* ══ CATEGORIES PAGE ══ */
+.cat-tree{display:flex;flex-direction:column;gap:6px}
+.cat-row{background:var(--w);border-radius:12px;border:1px solid var(--gl2);overflow:hidden;box-shadow:var(--sh)}
+.cat-row.dragging{opacity:.5;box-shadow:var(--sh2)}
+.cat-row.drag-over{border-color:var(--blue);box-shadow:0 0 0 2px rgba(37,99,235,.2)}
+.cat-row-inner{display:flex;align-items:center;gap:12px;padding:11px 14px}
+.cat-drag-handle{color:var(--gl2);cursor:grab;font-size:16px;flex-shrink:0;user-select:none;line-height:1}
+.cat-drag-handle:active{cursor:grabbing}
+.cat-thumb{width:40px;height:40px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden;border:1px solid var(--gl2)}
+.cat-thumb img{width:100%;height:100%;object-fit:cover}
+.cat-info{flex:1;min-width:0}
+.cat-name{font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}
+.cat-name .parent-chip{font-size:10px;font-weight:600;color:var(--gt);background:var(--bg);padding:1px 7px;border-radius:8px}
+.cat-slug{font-size:11px;color:var(--gt);margin-top:1px}
+.cat-count{font-size:11px;color:var(--gt);background:var(--bg);padding:2px 8px;border-radius:8px;white-space:nowrap;font-weight:600}
+.cat-actions{display:flex;align-items:center;gap:6px}
+.sub-cats{padding:0 14px 10px 14px;display:flex;flex-direction:column;gap:5px}
+.sub-cat-row{background:var(--bg);border:1px solid var(--gl2);border-radius:8px;display:flex;align-items:center;gap:10px;padding:8px 12px}
+.sub-cat-info{flex:1;min-width:0}
+.sub-cat-name{font-size:12px;font-weight:700}
+.sub-cat-slug{font-size:11px;color:var(--gt)}
+.sub-cat-count{font-size:11px;color:var(--gt);font-weight:600;background:var(--w);padding:2px 7px;border-radius:8px;white-space:nowrap}
+
+/* ══ CHAT ══ */
+#page-chats.active{padding:0;overflow:hidden}
+.chat-layout{display:flex;flex:1;overflow:hidden;height:0}
+.chat-sessions-pane{width:280px;border-right:1px solid var(--gl2);display:flex;flex-direction:column;flex-shrink:0;background:var(--w)}
+.chat-sess-hdr{padding:14px 16px;border-bottom:1px solid var(--gl2);font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.chat-sess-cnt{font-size:11px;color:var(--gt);background:var(--bg);padding:2px 8px;border-radius:10px}
 #sessions-list{flex:1;overflow-y:auto}
-.no-chats{text-align:center;color:var(--gt);font-size:13px;padding:40px 20px}
-
-.session-item{padding:14px 20px;border-bottom:1px solid var(--gl2);cursor:pointer;transition:background .12s}
+.no-chats,.chat-placeholder{text-align:center;color:var(--gt);font-size:13px;padding:40px 20px}
+.session-item{padding:12px 16px;border-bottom:1px solid var(--gl2);cursor:pointer;transition:background .12s}
 .session-item:hover{background:var(--bg)}
-.session-active{background:#eff6ff!important;border-right:3px solid var(--blue)}
-.s-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
-.s-id{font-size:13px;font-weight:700;color:var(--dk)}
+.session-active{background:var(--bluel)!important;border-left:3px solid var(--blue)}
+.s-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.s-id{font-size:13px;font-weight:700}
 .s-badge{background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px}
-.s-last{font-size:12px;color:var(--gt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.s-last{font-size:12px;color:var(--gt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
 .s-time{font-size:11px;color:var(--gt)}
-
-/* CHAT AREA */
-.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.chat-hdr{padding:16px 24px;border-bottom:1px solid var(--gl2);background:var(--w);font-size:15px;font-weight:700;flex-shrink:0}
-#admin-msgs{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:10px}
-.no-msgs{text-align:center;color:var(--gt);font-size:13px;margin-top:40px}
-.chat-placeholder{display:flex;align-items:center;justify-content:center;flex:1;color:var(--gt);font-size:14px}
-
-.a-msg{display:flex;flex-direction:column;max-width:70%}
+.chat-main-pane{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--w)}
+.chat-main-hdr{padding:12px 18px;border-bottom:1px solid var(--gl2);font-size:14px;font-weight:700;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.chat-back-btn{display:none;background:var(--bg);border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+#admin-msgs{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.a-msg{display:flex;flex-direction:column;max-width:72%}
 .a-msg--user{align-self:flex-start;align-items:flex-start}
 .a-msg--admin{align-self:flex-end;align-items:flex-end}
-.a-bubble{padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.5;word-break:break-word}
-.a-msg--user .a-bubble{background:var(--gl2);color:var(--dk);border-bottom-left-radius:4px}
+.a-bubble{padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.5;word-break:break-word}
+.a-msg--user .a-bubble{background:var(--bg);color:var(--dk);border-bottom-left-radius:4px}
 .a-msg--admin .a-bubble{background:var(--blue);color:#fff;border-bottom-right-radius:4px}
 .a-time{font-size:11px;color:var(--gt);margin-top:3px;padding:0 2px}
-
-#admin-reply-wrap{display:none;align-items:center;gap:10px;padding:16px 24px;border-top:1px solid var(--gl2);background:var(--w);flex-shrink:0}
-#admin-inp{flex:1;height:42px;border:2px solid var(--gl2);border-radius:50px;padding:0 16px;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s}
+.chat-reply-wrap{display:none;align-items:center;gap:8px;padding:12px 16px;border-top:1px solid var(--gl2);flex-shrink:0}
+#admin-inp{flex:1;height:40px;border:1.5px solid var(--gl2);border-radius:50px;padding:0 14px;font-size:13px;font-family:inherit;outline:none;transition:border-color .2s}
 #admin-inp:focus{border-color:var(--blue)}
-#admin-reply-wrap button{height:42px;background:var(--blue);color:#fff;border:none;border-radius:50px;padding:0 22px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
-#admin-reply-wrap button:hover{background:#1d4ed8}
+.chat-send-btn{width:40px;height:40px;background:var(--blue);color:#fff;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.chat-send-btn:hover{background:var(--blue2)}
+
+/* ══ MODAL ══ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end;justify-content:center;padding:0}
+.modal-overlay.open{display:flex}
+@media(min-width:640px){.modal-overlay{align-items:center;padding:20px}}
+.modal-sheet{background:var(--w);width:100%;border-radius:20px 20px 0 0;max-height:92svh;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.15)}
+@media(min-width:640px){.modal-sheet{border-radius:20px;max-height:88svh;max-width:560px}}
+.modal-sheet--wide{max-width:700px}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid var(--gl2);flex-shrink:0}
+.modal-hdr h2{font-size:16px;font-weight:800}
+.modal-close{background:var(--bg);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:14px;color:var(--gt);display:flex;align-items:center;justify-content:center;transition:all .12s}
+.modal-close:hover{background:var(--gl2);color:var(--dk)}
+.modal-body{flex:1;overflow-y:auto;padding:18px 22px}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--gl2);display:flex;gap:10px;flex-shrink:0}
+.modal-footer .btn-cancel{flex:1;background:var(--bg);border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:700;color:var(--gt);cursor:pointer;font-family:inherit;transition:background .14s}
+.modal-footer .btn-cancel:hover{background:var(--gl2)}
+.modal-footer .btn-save{flex:2;background:var(--blue);border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;transition:background .14s}
+.modal-footer .btn-save:hover{background:var(--blue2)}
+.modal-footer .btn-save.green{background:var(--g)}
+.modal-footer .btn-save.green:hover{background:var(--g2)}
+
+/* ══ TABS inside modal ══ */
+.modal-tabs{display:flex;border-bottom:1px solid var(--gl2);margin:-18px -22px 18px;padding:0 22px}
+.mtab{background:none;border:none;border-bottom:2.5px solid transparent;padding:12px 14px 10px;font-family:inherit;font-size:13px;font-weight:700;color:var(--gt);cursor:pointer;transition:all .14s;margin-bottom:-1px}
+.mtab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.mtab:hover{color:var(--dk)}
+
+/* ══ FORMS ══ */
+.form-row{display:grid;gap:14px;margin-bottom:0}
+.form-row--2{grid-template-columns:1fr 1fr}
+.form-row--3{grid-template-columns:1fr 1fr 1fr}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.form-group:last-child{margin-bottom:0}
+.form-lbl{font-size:11px;font-weight:700;color:var(--gt);text-transform:uppercase;letter-spacing:.3px}
+.form-inp{width:100%;border:1.5px solid var(--gl2);border-radius:9px;padding:9px 12px;font-size:13px;font-family:inherit;outline:none;transition:border-color .2s;background:var(--w);color:var(--dk)}
+.form-inp:focus{border-color:var(--blue)}
+.form-inp.err{border-color:var(--red)}
+select.form-inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
+textarea.form-inp{height:80px;resize:vertical;line-height:1.5}
+.form-hint{font-size:11px;color:var(--gt);margin-top:3px}
+.form-prefix-wrap{position:relative}
+.form-prefix{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--gt);pointer-events:none}
+.form-inp--prefix{padding-left:20px}
+
+/* Toggle row */
+.form-switches{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:14px}
+.form-switch-item{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.tgl-form{position:relative;width:38px;height:22px;display:inline-block;flex-shrink:0}
+.tgl-form input{opacity:0;width:0;height:0;position:absolute}
+.tgl-form-slider{position:absolute;inset:0;background:#d1d5db;border-radius:11px;cursor:pointer;transition:.2s}
+.tgl-form-slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:50%;transform:translateY(-50%);background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tgl-form input:checked + .tgl-form-slider{background:var(--g)}
+.tgl-form input:checked + .tgl-form-slider::before{transform:translateY(-50%) translateX(16px)}
+
+/* Image upload */
+.img-upload-wrap{border:2px dashed var(--gl2);border-radius:12px;overflow:hidden;transition:border-color .2s}
+.img-upload-wrap:hover{border-color:var(--blue)}
+.img-upload-preview{width:100%;height:140px;display:flex;align-items:center;justify-content:center;background:var(--bg);position:relative;overflow:hidden}
+.img-upload-preview img{width:100%;height:100%;object-fit:cover}
+.img-upload-preview .img-placeholder{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--gt);font-size:12px;pointer-events:none}
+.img-upload-preview .img-placeholder svg{width:28px;height:28px;stroke:var(--gl2)}
+.img-upload-actions{display:flex;gap:8px;padding:10px}
+.img-url-inp{flex:1;height:34px;border:1.5px solid var(--gl2);border-radius:8px;padding:0 10px;font-size:12px;font-family:inherit;outline:none;transition:border-color .2s}
+.img-url-inp:focus{border-color:var(--blue)}
+.img-file-btn{height:34px;padding:0 12px;background:var(--bg);border:1.5px solid var(--gl2);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .14s}
+.img-file-btn:hover{background:var(--bluel);border-color:var(--blue);color:var(--blue)}
+.img-file-input{display:none}
+.img-remove-btn{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.5);border:none;border-radius:50%;width:24px;height:24px;color:#fff;font-size:12px;cursor:pointer;display:none;align-items:center;justify-content:center}
+.img-upload-preview:hover .img-remove-btn{display:flex}
+
+/* ══ CATEGORY MULTISELECT ══ */
+.cat-ms{position:relative}
+.cat-ms-box{min-height:38px;border:1.5px solid var(--gl2);border-radius:9px;padding:5px 8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;cursor:text;background:var(--w);transition:border-color .2s}
+.cat-ms-box.focused{border-color:var(--blue)}
+.cms-chip{background:var(--bluel);color:var(--blue);font-size:11px;font-weight:700;padding:3px 8px;border-radius:7px;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.cms-chip-del{background:none;border:none;color:var(--blue);cursor:pointer;font-size:13px;line-height:1;padding:0;display:flex;align-items:center}
+.cms-chip-del:hover{color:var(--red)}
+.cms-inp{border:none;outline:none;font-family:inherit;font-size:13px;flex:1;min-width:80px;padding:2px 4px;background:transparent}
+.cms-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--w);border:1.5px solid var(--gl2);border-radius:10px;box-shadow:var(--sh2);z-index:100;max-height:220px;overflow-y:auto}
+.cms-opt{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;font-size:13px;transition:background .1s}
+.cms-opt:hover{background:var(--bg)}
+.cms-opt.selected{background:var(--bluel)}
+.cms-opt-check{width:16px;height:16px;border:2px solid var(--gl2);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .14s}
+.cms-opt.selected .cms-opt-check{background:var(--blue);border-color:var(--blue);color:#fff}
+.cms-opt-check svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.cms-opt-name{flex:1}
+.cms-opt-indent{color:var(--gt);font-size:11px;flex-shrink:0}
+.cms-create{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;font-size:13px;font-weight:700;color:var(--g);border-top:1px solid var(--gl2)}
+.cms-create:hover{background:var(--gl)}
+.cms-empty{padding:12px;text-align:center;font-size:12px;color:var(--gt)}
+
+/* ══ TOAST ══ */
+#toast-wrap{position:fixed;top:20px;right:20px;z-index:500;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--dk);color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:var(--sh2);opacity:0;transform:translateX(20px);transition:all .25s;pointer-events:auto;display:flex;align-items:center;gap:8px;max-width:320px}
+.toast.show{opacity:1;transform:translateX(0)}
+.toast.success{background:#15803d}
+.toast.error{background:var(--red)}
+
+/* ══ EMPTY STATE ══ */
+.empty-state{text-align:center;padding:60px 20px;color:var(--gt)}
+.empty-state-icon{font-size:48px;margin-bottom:12px}
+.empty-state-title{font-size:14px;font-weight:700;color:var(--dk);margin-bottom:6px}
+.empty-state-sub{font-size:13px;line-height:1.6}
+.setup-card{background:var(--w);border-radius:14px;border:1.5px dashed var(--gl2);padding:28px 24px;text-align:center}
+.setup-sql{display:block;text-align:left;white-space:pre;overflow-x:auto;background:#1a1d1f;color:#e8f7ef;padding:14px;border-radius:10px;font-family:monospace;font-size:11px;line-height:1.7;margin:12px 0;border:none;width:100%}
+
+/* ══ MOBILE NAV ══ */
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--mobnav);background:var(--w);border-top:1px solid var(--gl2);z-index:100;box-shadow:0 -2px 16px rgba(0,0,0,.07)}
+.mob-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:9px;font-weight:700;color:var(--gt);position:relative;-webkit-tap-highlight-color:transparent;padding:4px 0}
+.mob-nav-item svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.mob-nav-item.active{color:var(--blue)}
+.mob-nav-badge{position:absolute;top:2px;left:50%;margin-left:4px;background:var(--red);color:#fff;font-size:8px;font-weight:700;min-width:14px;height:14px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;border:2px solid var(--w)}
+
+/* ══ SIDEBAR OVERLAY (mobile) ══ */
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:49}
+.sb-overlay.open{display:block}
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:900px){
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .dash-grid{grid-template-columns:1fr}
+}
+@media(max-width:768px){
+  .sidebar{position:fixed;top:0;left:0;bottom:0;transform:translateX(-100%);z-index:50}
+  .sidebar.open{transform:translateX(0)}
+  .sb-close-btn{display:flex}
+  .topbar-menu-btn{display:flex}
+  .pages-wrap{padding:14px 14px 80px}
+  .mob-nav{display:flex}
+  #page-chats.active{height:calc(100svh - var(--topbar) - var(--mobnav));padding-bottom:0}
+  .chat-sessions-pane{width:100%}
+  .chat-sessions-pane.has-active{display:none}
+  .chat-main-pane.no-active{display:none}
+  .chat-back-btn{display:block}
+  .stats-row{grid-template-columns:repeat(2,1fr);gap:10px}
+  .th-hide-sm,.td-hide-sm{display:none}
+  .form-row--2,.form-row--3{grid-template-columns:1fr}
+  .tbl-wrap{overflow-x:auto}
+}
+@media(min-width:769px){
+  #admin-app{display:flex!important;flex-direction:row}
+  .chat-back-btn{display:none!important}
+}
 </style>
 </head>
 <body>
 
+<!-- AUTH -->
 <div id="auth-screen">
-  <h1>Адмін-панель</h1>
-  <input type="password" id="pw-inp" placeholder="Пароль">
-  <button onclick="checkPw()">Увійти</button>
+  <div class="auth-card">
+    <div class="auth-logo">🌿</div>
+    <h1>Добробут Admin</h1>
+    <p class="auth-sub">Увійдіть з вашим адміністративним акаунтом</p>
+    <input type="email" id="email-inp" class="auth-field" placeholder="Email адреса" autocomplete="email">
+    <input type="password" id="pw-inp" class="auth-field" placeholder="Пароль" autocomplete="current-password">
+    <button class="auth-btn" id="auth-btn" onclick="signIn()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Увійти
+    </button>
+    <div id="auth-err" class="auth-err"></div>
+  </div>
 </div>
 
+<!-- ADMIN APP -->
 <div id="admin-app">
-  <div class="sidebar">
-    <div class="sidebar-hdr">
-      <h2>Чати підтримки</h2>
-      <button class="logout-btn" onclick="logout()">Вийти</button>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-header">
+      <div class="sb-logo">🌿</div>
+      <div class="sb-brand">
+        <div class="sb-brand-name">Добробут</div>
+        <div class="sb-brand-sub">Admin Panel</div>
+      </div>
+      <button class="sb-close-btn" onclick="closeSidebar()">✕</button>
     </div>
-    <div id="sessions-list"><div class="no-chats">Завантаження...</div></div>
-  </div>
-  <div class="chat-area">
-    <div class="chat-hdr" id="chat-hdr">Оберіть чат зі списку</div>
-    <div id="admin-msgs"><div class="chat-placeholder">Оберіть розмову зліва</div></div>
-    <div id="admin-reply-wrap">
-      <input id="admin-inp" placeholder="Відповідь клієнту...">
-      <button onclick="sendAdminMsg()">Надіслати</button>
+    <nav class="sb-nav">
+      <div class="sb-section">Головне</div>
+      <button class="nav-btn active" data-page="dashboard" onclick="showPage('dashboard')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Дашборд
+      </button>
+      <div class="sb-section">Каталог</div>
+      <button class="nav-btn" data-page="products" onclick="showPage('products')">
+        <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1" fill="currentColor" stroke="none"/></svg>
+        Товари
+        <span class="nb-badge" id="nb-products" style="display:none">0</span>
+      </button>
+      <button class="nav-btn" data-page="categories" onclick="showPage('categories')">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Категорії
+        <span class="nb-badge" id="nb-categories" style="display:none">0</span>
+      </button>
+      <div class="sb-section">Продажі</div>
+      <button class="nav-btn" data-page="orders" onclick="showPage('orders')">
+        <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+        Замовлення
+        <span class="nb-badge" id="nb-orders" style="display:none">0</span>
+      </button>
+      <button class="nav-btn" data-page="chats" onclick="showPage('chats')">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Чати
+        <span class="nb-badge" id="nb-chats" style="display:none">0</span>
+      </button>
+    </nav>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-user-avatar">👤</div>
+        <div>
+          <div class="sb-user-email" id="sb-email">admin</div>
+          <div class="sb-user-role">Адміністратор</div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="signOut()">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Вийти з акаунту
+      </button>
+    </div>
+  </aside>
+  <div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
+
+  <!-- Main -->
+  <div class="adm-main">
+    <div class="topbar">
+      <button class="topbar-menu-btn" onclick="openSidebar()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+      </button>
+      <div class="topbar-title" id="topbar-title">Дашборд</div>
+      <div class="topbar-actions" id="topbar-actions"></div>
+    </div>
+
+    <div class="pages-wrap" id="pages-wrap">
+
+      <!-- DASHBOARD -->
+      <div class="adm-page active" id="page-dashboard">
+        <div class="stats-row">
+          <div class="stat-card" onclick="showPage('products')">
+            <div class="stat-icon" style="background:#eff6ff">📦</div>
+            <div><div class="stat-val" id="stat-products">—</div><div class="stat-lbl">Товарів</div></div>
+          </div>
+          <div class="stat-card" onclick="showPage('categories')">
+            <div class="stat-icon" style="background:var(--gl)">🏷️</div>
+            <div><div class="stat-val" id="stat-cats">—</div><div class="stat-lbl">Категорій</div></div>
+          </div>
+          <div class="stat-card" onclick="showPage('orders')">
+            <div class="stat-icon" style="background:#fff7ed">🛒</div>
+            <div><div class="stat-val" id="stat-orders">—</div><div class="stat-lbl">Замовлень</div></div>
+          </div>
+          <div class="stat-card" onclick="showPage('chats')">
+            <div class="stat-icon" style="background:#fef2f2">💬</div>
+            <div><div class="stat-val" id="stat-unread">—</div><div class="stat-lbl">Непрочитаних</div></div>
+          </div>
+        </div>
+        <div class="dash-grid">
+          <div class="dash-card">
+            <div class="dash-card-hdr">
+              <div class="dash-card-title">Останні чати</div>
+              <button class="dash-card-link" onclick="showPage('chats')">Всі →</button>
+            </div>
+            <div id="dash-chats"><div class="tbl-loading">Завантаження...</div></div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-hdr"><div class="dash-card-title">Швидкі дії</div></div>
+            <div class="qa-grid">
+              <button class="qa-btn" onclick="showPage('products');setTimeout(openProductModal,100)">
+                <span class="qa-icon">➕</span><span>Новий товар</span>
+              </button>
+              <button class="qa-btn" onclick="showPage('categories');setTimeout(openCategoryModal,100)">
+                <span class="qa-icon">📂</span><span>Нова категорія</span>
+              </button>
+              <button class="qa-btn" onclick="showPage('orders')">
+                <span class="qa-icon">📋</span><span>Замовлення</span>
+              </button>
+              <button class="qa-btn" onclick="showPage('chats')">
+                <span class="qa-icon">💬</span><span>Чати</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRODUCTS -->
+      <div class="adm-page" id="page-products">
+        <div class="page-hdr">
+          <div class="page-hdr-left">
+            <div>
+              <div class="page-ttl">Товари</div>
+              <div class="page-sub" id="prod-count-lbl">Завантаження...</div>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="openProductModal()">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Додати товар
+          </button>
+        </div>
+
+        <div class="flt-bar">
+          <div class="flt-search-wrap">
+            <svg class="flt-search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="flt-search" id="flt-prod-search" placeholder="Пошук товарів..." oninput="onProdSearch(this.value)">
+          </div>
+          <select class="flt-sel" id="flt-prod-cat" onchange="loadProducts()">
+            <option value="">Всі категорії</option>
+          </select>
+          <select class="flt-sel" id="flt-prod-stock" onchange="loadProducts()">
+            <option value="">Наявність</option>
+            <option value="true">В наявності</option>
+            <option value="false">Немає</option>
+          </select>
+          <select class="flt-sel" id="flt-prod-status" onchange="loadProducts()">
+            <option value="">Статус</option>
+            <option value="true">Активні</option>
+            <option value="false">Приховані</option>
+          </select>
+          <button class="flt-reset" onclick="resetProdFilters()">✕ Скинути</button>
+        </div>
+
+        <!-- Bulk bar -->
+        <div class="bulk-bar" id="bulk-bar" style="display:none">
+          <span class="bulk-count" id="bulk-count">0 вибрано</span>
+          <button class="btn btn-sm btn-danger" onclick="bulkDelete()">🗑 Видалити</button>
+          <button class="btn btn-sm btn-ghost" onclick="bulkStock(true)">✅ В наявності</button>
+          <button class="btn btn-sm btn-ghost" onclick="bulkStock(false)">❌ Немає</button>
+          <button class="btn btn-sm btn-ghost" onclick="clearBulk()">Скасувати</button>
+        </div>
+
+        <div class="tbl-wrap">
+          <table class="adm-tbl">
+            <thead>
+              <tr>
+                <th class="th-chk"><input type="checkbox" id="chk-all" onchange="selectAll(this.checked)"></th>
+                <th>Товар</th>
+                <th class="td-hide-sm">Категорії</th>
+                <th>Ціна</th>
+                <th class="td-hide-sm">Наявність</th>
+                <th class="td-hide-sm">Активний</th>
+                <th class="th-act"></th>
+              </tr>
+            </thead>
+            <tbody id="prod-tbody">
+              <tr><td colspan="7" class="tbl-loading">Завантаження...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="prod-pag"></div>
+      </div>
+
+      <!-- CATEGORIES -->
+      <div class="adm-page" id="page-categories">
+        <div class="page-hdr">
+          <div class="page-hdr-left">
+            <div>
+              <div class="page-ttl">Категорії</div>
+              <div class="page-sub" id="cat-count-lbl">Завантаження...</div>
+            </div>
+          </div>
+          <button class="btn btn-green" onclick="openCategoryModal()">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Нова категорія
+          </button>
+        </div>
+        <div class="flt-bar">
+          <div class="flt-search-wrap">
+            <svg class="flt-search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="flt-search" id="flt-cat-search" placeholder="Пошук категорій..." oninput="filterCatList(this.value)">
+          </div>
+        </div>
+        <div id="cat-tree"><div class="tbl-loading">Завантаження...</div></div>
+      </div>
+
+      <!-- ORDERS -->
+      <div class="adm-page" id="page-orders">
+        <div class="page-hdr">
+          <div><div class="page-ttl">Замовлення</div></div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="adm-tbl">
+            <thead>
+              <tr>
+                <th>№ Замовлення</th>
+                <th class="td-hide-sm">Клієнт</th>
+                <th>Сума</th>
+                <th>Статус</th>
+                <th class="th-act"></th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody">
+              <tr><td colspan="5" class="tbl-loading">Завантаження...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CHATS -->
+      <div class="adm-page" id="page-chats">
+        <div class="chat-layout">
+          <div class="chat-sessions-pane" id="sessions-pane">
+            <div class="chat-sess-hdr">
+              Чати <span class="chat-sess-cnt" id="chat-sess-cnt">0</span>
+            </div>
+            <div id="sessions-list"><div class="tbl-loading">Завантаження...</div></div>
+          </div>
+          <div class="chat-main-pane" id="chat-main-pane">
+            <div class="chat-main-hdr">
+              <button class="chat-back-btn" onclick="backToSessions()">← Назад</button>
+              <span id="chat-hdr-txt">Оберіть чат зі списку</span>
+            </div>
+            <div id="admin-msgs"><div class="chat-placeholder">← Оберіть розмову</div></div>
+            <div class="chat-reply-wrap" id="admin-reply-wrap">
+              <input id="admin-inp" class="form-inp" placeholder="Відповідь клієнту..." style="border-radius:50px">
+              <button class="chat-send-btn" onclick="sendAdminMsg()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /pages-wrap -->
+  </div><!-- /adm-main -->
+
+  <!-- Mobile nav -->
+  <nav class="mob-nav">
+    <button class="mob-nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Головна
+    </button>
+    <button class="mob-nav-item" data-page="products" onclick="showPage('products')">
+      <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg>
+      Товари
+    </button>
+    <button class="mob-nav-item" data-page="categories" onclick="showPage('categories')">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Категорії
+    </button>
+    <button class="mob-nav-item" data-page="chats" onclick="showPage('chats')">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Чати
+      <span class="mob-nav-badge" id="mob-chat-badge" style="display:none">0</span>
+    </button>
+  </nav>
+
+</div><!-- /admin-app -->
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="prod-modal">
+  <div class="modal-sheet modal-sheet--wide">
+    <div class="modal-hdr">
+      <h2 id="prod-modal-title">Новий товар</h2>
+      <button class="modal-close" onclick="closeProdModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tabs">
+        <button class="mtab active" onclick="switchProdTab('main',this)">Основне</button>
+        <button class="mtab" onclick="switchProdTab('seo',this)">SEO</button>
+      </div>
+
+      <div id="ptab-main">
+        <div class="form-row form-row--2">
+          <div class="form-group" style="grid-column:1/-1">
+            <label class="form-lbl">Назва товару *</label>
+            <input type="text" class="form-inp" id="prod-name" placeholder="Назва товару" oninput="genProdSlug()">
+          </div>
+          <div class="form-group">
+            <label class="form-lbl">Ціна (грн) *</label>
+            <input type="number" class="form-inp" id="prod-price" placeholder="0" min="0" step="1">
+          </div>
+          <div class="form-group">
+            <label class="form-lbl">Стара ціна (грн)</label>
+            <input type="number" class="form-inp" id="prod-oldprice" placeholder="0" min="0" step="1">
+          </div>
+          <div class="form-group">
+            <label class="form-lbl">Артикул (SKU)</label>
+            <input type="text" class="form-inp" id="prod-sku" placeholder="SKU-001">
+          </div>
+          <div class="form-group">
+            <label class="form-lbl">Emoji іконка</label>
+            <input type="text" class="form-inp" id="prod-emoji" placeholder="🌿" maxlength="8">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-lbl">Категорії</label>
+          <div class="cat-ms" id="cat-ms">
+            <div class="cat-ms-box" id="cat-ms-box" onclick="toggleCmsDropdown()">
+              <div id="cms-chips"></div>
+              <input type="text" class="cms-inp" id="cms-inp" placeholder="Оберіть або введіть..." oninput="filterCms(this.value)" onclick="event.stopPropagation();openCmsDropdown()">
+            </div>
+            <div class="cms-dropdown" id="cms-dd" style="display:none">
+              <div id="cms-opts"></div>
+              <div class="cms-create" onclick="quickCreateCat()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Створити нову категорію
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-lbl">Зображення товару</label>
+          <div class="img-upload-wrap">
+            <div class="img-upload-preview" id="prod-img-preview" onclick="document.getElementById('prod-img-file').click()">
+              <div class="img-placeholder" id="prod-img-placeholder">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span>Натисніть або перетягніть фото</span>
+              </div>
+              <img id="prod-img-preview-img" style="display:none;width:100%;height:100%;object-fit:cover">
+              <button class="img-remove-btn" id="prod-img-remove" onclick="removeProdImage(event)">✕</button>
+            </div>
+            <div class="img-upload-actions">
+              <input type="text" class="img-url-inp" id="prod-img-url" placeholder="або вставте URL зображення" oninput="onProdImgUrl(this.value)">
+              <button class="img-file-btn" onclick="document.getElementById('prod-img-file').click()">📁 Файл</button>
+              <input type="file" class="img-file-input" id="prod-img-file" accept="image/*" onchange="onProdImgFile(this)">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-lbl">Опис товару</label>
+          <textarea class="form-inp" id="prod-desc" placeholder="Детальний опис товару..."></textarea>
+        </div>
+
+        <div class="form-switches">
+          <label class="form-switch-item">
+            <label class="tgl-form"><input type="checkbox" id="prod-instock" checked><span class="tgl-form-slider"></span></label>
+            В наявності
+          </label>
+          <label class="form-switch-item">
+            <label class="tgl-form"><input type="checkbox" id="prod-active" checked><span class="tgl-form-slider"></span></label>
+            Активний
+          </label>
+        </div>
+      </div>
+
+      <div id="ptab-seo" style="display:none">
+        <div class="form-group">
+          <label class="form-lbl">URL (slug)</label>
+          <div class="form-prefix-wrap">
+            <span class="form-prefix">/</span>
+            <input type="text" class="form-inp form-inp--prefix" id="prod-slug" placeholder="nazva-tovaru">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-lbl">SEO Заголовок</label>
+          <input type="text" class="form-inp" id="prod-seo-title" placeholder="SEO заголовок">
+          <div class="form-hint">Рекомендовано: 50–60 символів</div>
+        </div>
+        <div class="form-group">
+          <label class="form-lbl">SEO Опис</label>
+          <textarea class="form-inp" id="prod-seo-desc" placeholder="SEO опис для пошукових систем..."></textarea>
+          <div class="form-hint">Рекомендовано: 150–160 символів</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeProdModal()">Скасувати</button>
+      <button class="btn-save" id="prod-save-btn" onclick="saveProduct()">Зберегти товар</button>
     </div>
   </div>
 </div>
+
+<!-- CATEGORY MODAL -->
+<div class="modal-overlay" id="cat-modal">
+  <div class="modal-sheet">
+    <div class="modal-hdr">
+      <h2 id="cat-modal-title">Нова категорія</h2>
+      <button class="modal-close" onclick="closeCatModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tabs">
+        <button class="mtab active" onclick="switchCatTab('main',this)">Основне</button>
+        <button class="mtab" onclick="switchCatTab('seo',this)">SEO</button>
+      </div>
+
+      <div id="ctab-main">
+        <div class="form-group">
+          <label class="form-lbl">Назва категорії *</label>
+          <input type="text" class="form-inp" id="cat-name" placeholder="Назва категорії" oninput="genCatSlug()">
+        </div>
+        <div class="form-group">
+          <label class="form-lbl">Slug (URL) *</label>
+          <div class="form-prefix-wrap">
+            <span class="form-prefix">/</span>
+            <input type="text" class="form-inp form-inp--prefix" id="cat-slug" placeholder="category-slug">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-lbl">Батьківська категорія</label>
+          <select class="form-inp" id="cat-parent">
+            <option value="">— Головна категорія —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-lbl">Зображення категорії</label>
+          <div class="img-upload-wrap">
+            <div class="img-upload-preview" id="cat-img-preview" onclick="document.getElementById('cat-img-file').click()">
+              <div class="img-placeholder" id="cat-img-placeholder">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span>Натисніть щоб вибрати фото</span>
+              </div>
+              <img id="cat-img-preview-img" style="display:none;width:100%;height:100%;object-fit:cover">
+              <button class="img-remove-btn" id="cat-img-remove" onclick="removeCatImage(event)">✕</button>
+            </div>
+            <div class="img-upload-actions">
+              <input type="text" class="img-url-inp" id="cat-img-url" placeholder="або вставте URL зображення" oninput="onCatImgUrl(this.value)">
+              <button class="img-file-btn" onclick="document.getElementById('cat-img-file').click()">📁 Файл</button>
+              <input type="file" class="img-file-input" id="cat-img-file" accept="image/*" onchange="onCatImgFile(this)">
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-lbl">Опис категорії</label>
+          <textarea class="form-inp" id="cat-desc" placeholder="Опис категорії..."></textarea>
+        </div>
+        <div class="form-switches">
+          <label class="form-switch-item">
+            <label class="tgl-form"><input type="checkbox" id="cat-active" checked><span class="tgl-form-slider"></span></label>
+            Активна
+          </label>
+        </div>
+      </div>
+
+      <div id="ctab-seo" style="display:none">
+        <div class="form-group">
+          <label class="form-lbl">SEO Заголовок</label>
+          <input type="text" class="form-inp" id="cat-seo-title" placeholder="SEO заголовок категорії">
+        </div>
+        <div class="form-group">
+          <label class="form-lbl">SEO Опис</label>
+          <textarea class="form-inp" id="cat-seo-desc" placeholder="SEO опис..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeCatModal()">Скасувати</button>
+      <button class="btn-save green" id="cat-save-btn" onclick="saveCategory()">Зберегти категорію</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast-wrap"></div>
 
 <script type="module" src="/src/js/admin.js"></script>
 </body>
