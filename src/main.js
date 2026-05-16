@@ -89,22 +89,22 @@ function closeAllPanels(closeOvl){
 
 // ── CART ──
 function addToCart(pid,cnt){
-  var p=PRODS.find(function(x){return x.id===pid;});if(!p)return;
+  var p=PRODS.find(function(x){return String(x.id)===String(pid);});if(!p)return;
   var q=Math.max(1,parseInt(cnt,10)||1);
-  var ex=cart.find(function(x){return x.id===pid;});
+  var ex=cart.find(function(x){return String(x.id)===String(pid);});
   if(ex){ex.qty+=q;}else{cart.push({id:p.id,nm:p.nm,e:p.e,p:p.p,op:p.op,qty:q});}
   updateCartBadge();
   trackAddToCart(p, q);
   showToast("\u2705 "+p.nm+" \u2014 \u0434\u043e\u0434\u0430\u043d\u043e \u0434\u043e \u043a\u043e\u0448\u0438\u043a\u0430"+(q>1?" \u00D7"+q:"")+"!");
 }
 function removeFromCart(pid){
-  var _rem=cart.find(function(x){return x.id===pid;});
+  var _rem=cart.find(function(x){return String(x.id)===String(pid);});
   if(_rem)trackRemoveFromCart(_rem);
-  cart=cart.filter(function(x){return x.id!==pid;});
+  cart=cart.filter(function(x){return String(x.id)!==String(pid);});
   updateCartBadge();renderCart();
 }
 function changeCartQty(pid,d){
-  var item=cart.find(function(x){return x.id===pid;});if(!item)return;
+  var item=cart.find(function(x){return String(x.id)===String(pid);});if(!item)return;
   item.qty=Math.max(1,item.qty+d);
   updateCartBadge();renderCart();
 }
@@ -124,10 +124,10 @@ function renderCart(){
   cart.forEach(function(item){
     h+="<div class=\"cart-item\"><div class=\"ci-em\">"+item.e+"</div><div class=\"ci-info\">";
     h+="<div class=\"ci-nm\">"+item.nm+"</div><div class=\"ci-pr\">"+item.p*item.qty+" \u0433\u0440\u043d</div>";
-    h+="<div class=\"ci-qty\"><button class=\"ciq-btn\" onclick=\"changeCartQty("+item.id+",-1)\">\u2212</button>";
+    h+="<div class=\"ci-qty\"><button class=\"ciq-btn\" onclick=\"changeCartQty('"+item.id+"',-1)\">\u2212</button>";
     h+="<span class=\"ciq-val\">"+item.qty+"</span>";
-    h+="<button class=\"ciq-btn\" onclick=\"changeCartQty("+item.id+",1)\">+</button></div></div>";
-    h+="<button class=\"ci-del\" onclick=\"removeFromCart("+item.id+")\">&#x2715;</button></div>";
+    h+="<button class=\"ciq-btn\" onclick=\"changeCartQty('"+item.id+"',1)\">+</button></div></div>";
+    h+="<button class=\"ci-del\" onclick=\"removeFromCart('"+item.id+"')\">&#x2715;</button></div>";
   });
   body.innerHTML=h;
   foot.innerHTML="<div class=\"cart-total-box\">"
@@ -318,22 +318,22 @@ async function coFinish(){
 }
 // ── FAVORITES ──
 function toggleFav(pid){
-  var p=PRODS.find(function(x){return x.id===pid;});if(!p)return;
-  var idx=favs.findIndex(function(x){return x.id===pid;});
+  var p=PRODS.find(function(x){return String(x.id)===String(pid);});if(!p)return;
+  var idx=favs.findIndex(function(x){return String(x.id)===String(pid);});
   if(idx>=0){favs.splice(idx,1);showToast("\uD83D\uDC94 \u0412\u0438\u0434\u0430\u043B\u0435\u043D\u043E \u0437 \u043E\u0431\u0440\u0430\u043D\u043E\u0433\u043E");}
   else{favs.push({id:p.id,nm:p.nm,e:p.e,p:p.p,op:p.op});showToast("\u2764\uFE0F "+p.nm+" \u2014 \u0434\u043E\u0434\u0430\u043D\u043E!");}
   var badge=document.getElementById("fav-badge");
   badge.textContent=favs.length;badge.style.display=favs.length>0?"flex":"none";
-  document.querySelectorAll(".pfav[data-id='"+pid+"']").forEach(function(b){b.classList.toggle("on",favs.some(function(x){return x.id===pid;}));});
+  document.querySelectorAll(".pfav[data-id='"+pid+"']").forEach(function(b){b.classList.toggle("on",favs.some(function(x){return String(x.id)===String(pid);}));});
 }
 function renderFav(){
   var body=document.getElementById("fav-body");
   if(!favs.length){body.innerHTML="<div class=\"cart-empty\"><div class=\"ce-em\">\u2661</div><p>\u041E\u0431\u0440\u0430\u043D\u0435 \u043F\u043E\u0440\u043E\u0436\u043D\u0454</p><span>\u041D\u0430\u0442\u0438\u0441\u043D\u0456\u0442\u044C \u2661 \u043D\u0430 \u0442\u043E\u0432\u0430\u0440\u0456</span></div>";return;}
   var h="<div class=\"fav-grid\">";
   favs.forEach(function(p){
-    h+="<div class=\"fav-card\" onclick=\"closeAllPanels();openMod("+p.id+")\"><div class=\"fc-em\">"+p.e+"</div>";
+    h+="<div class=\"fav-card\" onclick=\"closeAllPanels();openMod('"+p.id+"')\"><div class=\"fc-em\">"+p.e+"</div>";
     h+="<div class=\"fc-nm\">"+p.nm+"</div><div class=\"fc-pr\">"+p.p+" \u0433\u0440\u043D</div>";
-    h+="<button class=\"fav-add-btn\" onclick=\"event.stopPropagation();addToCart("+p.id+")\"> \u0412 \u043A\u043E\u0448\u0438\u043A</button></div>";
+    h+="<button class=\"fav-add-btn\" onclick=\"event.stopPropagation();addToCart('"+p.id+"')\"> \u0412 \u043A\u043E\u0448\u0438\u043A</button></div>";
   });
   body.innerHTML=h+"</div>";
 }
@@ -1174,17 +1174,18 @@ function pCard(p){
   var disc=Math.round((1-p.p/p.op)*100);
   var bc=p.b==="new"?"nb":p.b==="hot"?"hb":"";
   var bl=p.b==="new"?tr.badgeNew:p.b==="hot"?tr.badgeHot:tr.badgeDiscount;
-  var isFav=favs.some(function(x){return x.id===p.id;});
-  var h="<div class=\"pcard\" onclick=\"openMod("+p.id+")\">";
+  var sid="'"+p.id+"'"; // safe ID для onclick — в лапках, працює і з UUID і з числом
+  var isFav=favs.some(function(x){return String(x.id)===String(p.id);});
+  var h="<div class=\"pcard\" onclick=\"openMod("+sid+")\">";
   h+="<div class=\"pimg\"><div class=\"pimg-inner\">"+p.e+"</div>";
   h+="<span class=\"pbadge "+bc+"\">"+bl+" -"+disc+"%</span>";
-  h+="<button class=\"pfav"+(isFav?" on":"")+"\" data-id=\""+p.id+"\" onclick=\"event.stopPropagation();toggleFav("+p.id+");this.classList.toggle('on')\">";
+  h+="<button class=\"pfav"+(isFav?" on":"")+"\" data-id=\""+p.id+"\" onclick=\"event.stopPropagation();toggleFav("+sid+");this.classList.toggle('on')\">";
   h+="<svg viewBox=\"0 0 24 24\"><path d=\"M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z\"/></svg></button>";
   h+="</div>";
   h+="<div class=\"pbody\"><div class=\"pname\">"+p.nm+"</div>";
   h+="<div class=\"prat\"><span class=\"pstars\">"+"★".repeat(Math.floor(p.r))+"☆".repeat(5-Math.floor(p.r))+"</span><span class=\"prc\">("+p.rv+")</span></div>";
   h+="<div class=\"pprices\"><span class=\"ppnew\">"+p.p+" "+tr.currency+"</span><span class=\"ppold\">"+p.op+" "+tr.currency+"</span><span class=\"pdisc\">-"+disc+"%</span></div>";
-  h+="<button class=\"pqa\" onclick=\"event.stopPropagation();addToCart("+p.id+")\">"+tr.addToCart+"</button>";
+  h+="<button class=\"pqa\" onclick=\"event.stopPropagation();addToCart("+sid+")\">"+tr.addToCart+"</button>";
   h+="</div></div>";return h;
 }
 
@@ -1406,7 +1407,7 @@ function renderHome(){
   if(hpa){
     hpa.innerHTML=PRODS.slice(0,6).map(function(p){
       var disc=p.op>p.p?Math.round((1-p.p/p.op)*100):0;
-      return "<div class=\"hpc\" onclick=\"openMod("+p.id+")\"><div class=\"hpc-em\">"+p.e+"</div>"
+      return "<div class=\"hpc\" onclick=\"openMod('"+p.id+"')\"><div class=\"hpc-em\">"+p.e+"</div>"
         +"<div><div class=\"hpc-nm\">"+p.nm+"</div><div class=\"hpc-row\"><div class=\"hpc-pr\">"+p.p+" \u0433\u0440\u043D</div><div class=\"hpc-op\">"+p.op+" \u0433\u0440\u043D</div>"+(disc>0?"<div class=\"hpc-bd\">-"+disc+"%</div>":"")+"</div></div></div>";
     }).join("");
   }
@@ -2072,7 +2073,7 @@ function submitPdReview(){
   pdTab("reviews");
 }
 function openProdPage(id){
-  var p=PRODS.find(function(x){return x.id===id;});if(!p)return;
+  var p=PRODS.find(function(x){return String(x.id)===String(id);});if(!p)return;
   pdCurrentId=id;pdQty=1;pdAiOpen=false;
   var ap=document.getElementById("pd-ai-panel");if(ap)ap.classList.remove("open");
   showPage("product");
