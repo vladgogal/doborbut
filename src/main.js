@@ -1814,7 +1814,7 @@ window.switchChatTab = function(tab) {
   } else {
     if(ai) ai.classList.remove('open');
     if(sup) sup.classList.add('open');
-    renderSupMessages();
+    if(typeof window._supChatActivate === 'function') window._supChatActivate();
   }
 };
 
@@ -1886,19 +1886,8 @@ function updateMobCartBadge() {
 var _origRenderCart = window.renderCart;
 window.renderCart = function(){ if(_origRenderCart) _origRenderCart(); updateMobCartBadge(); };
 
-// sync chat badge to mob-chat-badge
 document.addEventListener('DOMContentLoaded', function() {
   updateMobCartBadge();
-  // observe sup-notif badge
-  var supNotif = document.getElementById('sup-notif');
-  var mobChat = document.getElementById('mob-chat-badge');
-  if(supNotif && mobChat) {
-    new MutationObserver(function() {
-      var v = supNotif.textContent;
-      mobChat.textContent = v;
-      mobChat.style.display = supNotif.style.display;
-    }).observe(supNotif, {childList:true, attributes:true, attributeFilter:['style']});
-  }
   // observe prod-found-cnt
   var pfc = document.getElementById('prod-found-cnt');
   if(pfc) {

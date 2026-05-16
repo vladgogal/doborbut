@@ -7,6 +7,9 @@ const SESSION_ID = (() => {
   return id;
 })();
 
+// localStorage key for last-read timestamp
+const LAST_READ_KEY = 'sup_last_read_' + SESSION_ID;
+
 let isOpen  = false;
 let loaded  = false;
 let channel = null;
@@ -26,6 +29,16 @@ function fmtTime(ts) {
 
 function isLoggedIn() {
   return typeof window.getLoginState === 'function' && window.getLoginState() === true;
+}
+
+function getLastRead() {
+  return localStorage.getItem(LAST_READ_KEY) || '';
+}
+
+function markAllRead() {
+  localStorage.setItem(LAST_READ_KEY, new Date().toISOString());
+  _unread = 0;
+  updateBadge();
 }
 
 function buildBubble(msg) {
@@ -70,7 +83,6 @@ function showGuestBlock() {
     <div class="sup-guest-txt">Увійдіть в акаунт, щоб написати у підтримку</div>
     <button class="sup-guest-btn" onclick="closeAllPanels();openPanel('acc-panel');renderAcc()">Увійти</button>
   </div>`;
-  // hide input row
   const row = document.getElementById('sup-inp-row');
   if (row) row.style.display = 'none';
 }
@@ -105,6 +117,22 @@ async function loadMsgs() {
   data.forEach(msg => { rendered.add(msg.id); appendMsg(msg); });
 }
 
+// ─── CHECK UNREAD ON LOAD ─────────────────────────────────────
+// Count admin messages newer than the last-read timestamp and show badge on load.
+async function checkUnreadOnLoad() {
+  if (!supabase) return;
+  const lastRead = getLastRead();
+  let q = supabase
+    .from('chat_messages')
+    .select('id', { count: 'exact', head: true })
+    .eq('session_id', SESSION_ID)
+    .eq('sender', 'admin');
+  if (lastRead) q = q.gt('created_at', lastRead);
+  const { count } = await q;
+  _unread = count || 0;
+  updateBadge();
+}
+
 // ─── REALTIME ─────────────────────────────────────────────────
 function subscribeRealtime() {
   if (!supabase || channel) return;
@@ -118,8 +146,11 @@ function subscribeRealtime() {
     }, ({ new: msg }) => {
       if (rendered.has(msg.id)) return;
       rendered.add(msg.id);
-      appendMsg(msg);
-      if (!isOpen && msg.sender === 'admin') {
+      // Only append if panel is open (avoid duplicates on re-open)
+      if (isOpen) {
+        appendMsg(msg);
+        if (msg.sender === 'admin') markAllRead();
+      } else if (msg.sender === 'admin') {
         _unread++;
         updateBadge();
       }
@@ -129,20 +160,34 @@ function subscribeRealtime() {
 
 // ─── BADGE ────────────────────────────────────────────────────
 function updateBadge() {
-  const el = document.getElementById('sup-notif');
-  if (!el) return;
-  if (_unread > 0) { el.textContent = _unread; el.style.display = 'flex'; }
-  else el.style.display = 'none';
+  // Desktop floating widget badge
+  const elNotif = document.getElementById('sup-notif');
+  if (elNotif) {
+    if (_unread > 0) { elNotif.textContent = _unread; elNotif.style.display = 'flex'; }
+    else elNotif.style.display = 'none';
+  }
+  // Mobile nav badge
+  const elMob = document.getElementById('mob-chat-badge');
+  if (elMob) {
+    if (_unread > 0) { elMob.textContent = _unread; elMob.style.display = 'flex'; }
+    else elMob.style.display = 'none';
+  }
 }
 
-// ─── PUBLIC API ───────────────────────────────────────────────
-window.openSupportChat = function () {
-  if (typeof window.closeAllPanels === 'function') window.closeAllPanels(false);
-  document.getElementById('support-panel')?.classList.add('open');
-  document.getElementById('ovl')?.classList.add('open');
+// ─── PATCH closeAllPanels to track isOpen ─────────────────────
+// main.js runs before this module, so closeAllPanels is already on window.
+(function patchClose() {
+  const _orig = window.closeAllPanels;
+  window.closeAllPanels = function() {
+    isOpen = false;
+    if (_orig) _orig.apply(this, arguments);
+  };
+})();
+
+// ─── CORE ACTIVATE (used by openSupportChat & switchChatTab) ──
+window._supChatActivate = function () {
   isOpen = true;
-  _unread = 0;
-  updateBadge();
+  markAllRead();
 
   if (!isLoggedIn()) {
     showGuestBlock();
@@ -153,6 +198,14 @@ window.openSupportChat = function () {
   loadMsgs();
   subscribeRealtime();
   setTimeout(() => document.getElementById('sup-inp')?.focus(), 300);
+};
+
+// ─── PUBLIC API ───────────────────────────────────────────────
+window.openSupportChat = function () {
+  if (typeof window.closeAllPanels === 'function') window.closeAllPanels(false);
+  document.getElementById('support-panel')?.classList.add('open');
+  document.getElementById('ovl')?.classList.add('open');
+  window._supChatActivate();
 };
 
 window.sendSupportMsg = async function () {
@@ -225,4 +278,5 @@ window.handleSupportFile = async function (e) {
 document.addEventListener('DOMContentLoaded', () => {
   if (!supabase) return;
   subscribeRealtime();
+  checkUnreadOnLoad();
 });

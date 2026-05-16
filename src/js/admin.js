@@ -1007,12 +1007,21 @@ window.updateOrderStatus = async function (id, status) {
 };
 
 // ─── CHATS ────────────────────────────────────────────────
+
+// Persist per-session read state in localStorage so unread count survives page reload.
+function _admReadKey(sid) { return 'adm_rd_' + sid; }
+function _getAdmRead(sid) { return localStorage.getItem(_admReadKey(sid)) || ''; }
+function _setAdmRead(sid, ts) { if (ts) localStorage.setItem(_admReadKey(sid), ts); }
+
 async function loadChatSessions() {
   const { data } = await sb.from('chat_messages').select('*').order('created_at', { ascending: true });
   if (!data) return;
   sessions = {};
   data.forEach(msg => {
     if (!sessions[msg.session_id]) sessions[msg.session_id] = [];
+    const lastRead = _getAdmRead(msg.session_id);
+    // A user message is "read" if admin has opened this session after it was sent.
+    msg._read = msg.sender !== 'user' || (lastRead !== '' && msg.created_at <= lastRead);
     sessions[msg.session_id].push(msg);
   });
   renderSessions();
@@ -1041,7 +1050,10 @@ function renderSessions() {
 
 window.selectSession = function (sid) {
   activeSid = sid;
-  if (sessions[sid]) sessions[sid].forEach(m => m._read = true);
+  const msgs = sessions[sid] || [];
+  // Persist read state: save the timestamp of the last message in this session.
+  if (msgs.length) _setAdmRead(sid, msgs.at(-1).created_at);
+  msgs.forEach(m => m._read = true);
   renderSessions();
   renderChat();
   updateChatBadge();
@@ -1105,7 +1117,12 @@ function subscribeChats() {
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, ({ new: msg }) => {
       if (!sessions[msg.session_id]) sessions[msg.session_id] = [];
       sessions[msg.session_id].push(msg);
-      if (msg.session_id === activeSid) { msg._read = true; renderChat(); }
+      if (msg.session_id === activeSid) {
+        // Session is open — mark read immediately and persist.
+        msg._read = true;
+        _setAdmRead(activeSid, msg.created_at);
+        renderChat();
+      }
       renderSessions();
       updateChatBadge();
       if (currentPage === 'dashboard') loadDashboard();
