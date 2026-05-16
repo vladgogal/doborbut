@@ -89,7 +89,9 @@ function closeAllPanels(closeOvl){
 
 // ── CART ──
 function addToCart(pid,cnt){
-  var p=PRODS.find(function(x){return String(x.id)===String(pid);});if(!p)return;
+  if(!pid){showToast("❌ помилка: id товару відсутній");return;}
+  var p=PRODS.find(function(x){return String(x.id)===String(pid);});
+  if(!p){showToast("❌ Товар не знайдено (PRODS:"+PRODS.length+")");return;}
   var q=Math.max(1,parseInt(cnt,10)||1);
   var ex=cart.find(function(x){return String(x.id)===String(pid);});
   if(ex){ex.qty+=q;}else{cart.push({id:p.id,nm:p.nm,e:p.e,p:p.p,op:p.op,qty:q});}
@@ -1178,16 +1180,18 @@ function pCard(p){
   var bl=p.b==="new"?tr.badgeNew:p.b==="hot"?tr.badgeHot:tr.badgeDiscount;
   var isFav=favs.some(function(x){return String(x.id)===String(p.id);});
   var pid="'"+p.id+"'";
-  var h="<div class=\"pcard\" onclick=\"openMod("+pid+")\">";
-  h+="<div class=\"pimg\"><div class=\"pimg-inner\">"+p.e+"</div>";
+  var h="<div class=\"pcard\">";
+  h+="<div class=\"pimg\" onclick=\"openMod("+pid+")\" style=\"cursor:pointer\">";
+  h+="<div class=\"pimg-inner\">"+p.e+"</div>";
   h+="<span class=\"pbadge "+bc+"\">"+bl+" -"+disc+"%</span>";
-  h+="<button class=\"pfav"+(isFav?" on":"")+"\" onclick=\"window._lastBtnMs=Date.now();event.stopPropagation();toggleFav("+pid+");this.classList.toggle('on',favs.some(function(x){return String(x.id)==="+pid+";}))\">";
+  h+="<button class=\"pfav"+(isFav?" on":"")+"\" data-id=\""+p.id+"\" onclick=\"window._lastBtnMs=Date.now();event.stopPropagation();toggleFav("+pid+")\">";
   h+="<svg viewBox=\"0 0 24 24\"><path d=\"M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z\"/></svg></button>";
   h+="</div>";
-  h+="<div class=\"pbody\"><div class=\"pname\">"+p.nm+"</div>";
+  h+="<div class=\"pbody\">";
+  h+="<div class=\"pname\" onclick=\"openMod("+pid+")\" style=\"cursor:pointer\">"+p.nm+"</div>";
   h+="<div class=\"prat\"><span class=\"pstars\">"+"★".repeat(Math.floor(p.r))+"☆".repeat(5-Math.floor(p.r))+"</span><span class=\"prc\">("+p.rv+")</span></div>";
   h+="<div class=\"pprices\"><span class=\"ppnew\">"+p.p+" "+tr.currency+"</span><span class=\"ppold\">"+p.op+" "+tr.currency+"</span><span class=\"pdisc\">-"+disc+"%</span></div>";
-  h+="<button class=\"pqa\" onclick=\"window._lastBtnMs=Date.now();event.stopPropagation();addToCart("+pid+")\">"+tr.addToCart+"</button>";
+  h+="<button class=\"pqa\" onclick=\"window._lastBtnMs=Date.now();addToCart("+pid+")\">"+tr.addToCart+"</button>";
   h+="</div></div>";return h;
 }
 
