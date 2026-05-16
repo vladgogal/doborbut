@@ -1939,15 +1939,37 @@ if(window.location.search.includes("payment=success")){
   history.replaceState(null,"",window.location.pathname);
   setTimeout(function(){showToast("✅ Оплата успішна! Замовлення оформлено.");},600);
 }
-// ── EVENT DELEGATION для карток товарів (надійно на iOS/Android) ──
-document.addEventListener("click",function(e){
-  var cartBtn=e.target.closest("[data-action='cart']");
-  if(cartBtn){e.stopPropagation();addToCart(cartBtn.dataset.pid);return;}
-  var favBtn=e.target.closest("[data-action='fav']");
-  if(favBtn){e.stopPropagation();toggleFav(favBtn.dataset.id);favBtn.classList.toggle("on",favs.some(function(x){return String(x.id)===String(favBtn.dataset.id);}));return;}
-  var card=e.target.closest(".pcard[data-pid]");
-  if(card){openMod(card.dataset.pid);}
-});
+// ── EVENT DELEGATION для карток товарів ──
+// Використовуємо ручний обхід DOM (сумісно з iOS Safari, старим Android і SVG-елементами)
+function _cardDelegate(e){
+  var el=e.target;
+  // Піднімаємося по DOM поки не знайдемо потрібний елемент
+  while(el&&el!==document.body){
+    var action=el.getAttribute&&el.getAttribute("data-action");
+    if(action==="cart"){addToCart(el.getAttribute("data-pid"));return;}
+    if(action==="fav"){
+      var fid=el.getAttribute("data-id");
+      toggleFav(fid);
+      el.classList.toggle("on",favs.some(function(x){return String(x.id)===String(fid);}));
+      return;
+    }
+    // Якщо це картка і ми не прийшли з кнопки — відкрити товар
+    if(el.getAttribute&&el.getAttribute("data-pid")&&el.classList&&el.classList.contains("pcard")){
+      openMod(el.getAttribute("data-pid"));return;
+    }
+    el=el.parentElement;
+  }
+}
+document.addEventListener("click",_cardDelegate);
+// Також touchend для iOS — прибирає 300ms затримку і збільшує надійність
+document.addEventListener("touchend",function(e){
+  var el=e.target;
+  while(el&&el!==document.body){
+    var action=el.getAttribute&&el.getAttribute("data-action");
+    if(action==="cart"||action==="fav"){e.preventDefault();_cardDelegate(e);return;}
+    el=el.parentElement;
+  }
+},{passive:false});
 
 initAnalytics();
 setLang(getSavedLang(),true);
