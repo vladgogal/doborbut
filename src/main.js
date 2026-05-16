@@ -6,6 +6,11 @@ import { I18N, SUPPORTED_LANGS, DEFAULT_LANG } from './data/i18n.js';
 import { STORES as LS, CITY_COLORS as LC } from './data/stores.js';
 import { supabase, isSupabaseConfigured, cartAPI, favsAPI, reviewsAPI } from './js/supabase.js';
 import { liqpayCheckout } from './js/liqpay.js';
+import {
+  initAnalytics, trackViewItem, trackAddToCart,
+  trackRemoveFromCart, trackBeginCheckout,
+  trackAddPaymentInfo, trackPurchase, updateMeta,
+} from './js/analytics.js';
 
 // Експорт даних у window — щоб тестувати з консолі
 window.PRODS = PRODS;
@@ -27,15 +32,18 @@ window.reviewsAPI = reviewsAPI;
 // ============================================================
 var currentLang=DEFAULT_LANG;
 var CATS=[],HINTS=[],NAV=[],AI_RESP=[],AI_QUICK=[];
+var _sbCats=null; // категорії з Supabase; null = ще не завантажено
 function normalizeLang(lang){return SUPPORTED_LANGS.indexOf(lang)>=0?lang:DEFAULT_LANG;}
 function getLangPack(lang){return I18N[normalizeLang(lang||currentLang)]||I18N[DEFAULT_LANG];}
 function getCurrentLangPack(){return getLangPack(currentLang);}
 function updateLocalizedCollections(){
   var tr=getCurrentLangPack();
-  PRODS.forEach(function(p){p.nm=currentLang==="en"&&p.nm_en?p.nm_en:currentLang==="ru"&&p.nm_ru?p.nm_ru:p.nm_uk||p.nm;});
-  CATS=CATS_BASE.map(function(c){
-    return{e:c.e,n:tr.catNames[c.cat]||c.cat,c:c.c,cat:c.cat};
-  });
+  PRODS.forEach(function(p){p.nm=p.nm||p.name||"";});
+  if(_sbCats){
+    CATS=_sbCats.map(function(c){return{e:c.e||"📦",n:c.name||c.slug,c:c._count||"",cat:c.slug};});
+  }else{
+    CATS=[];
+  }
   HINTS=tr.hints.slice();
   NAV=tr.nav.slice();
   AI_RESP=tr.aiResp.slice();
@@ -86,9 +94,12 @@ function addToCart(pid,cnt){
   var ex=cart.find(function(x){return x.id===pid;});
   if(ex){ex.qty+=q;}else{cart.push({id:p.id,nm:p.nm,e:p.e,p:p.p,op:p.op,qty:q});}
   updateCartBadge();
+  trackAddToCart(p, q);
   showToast("\u2705 "+p.nm+" \u2014 \u0434\u043e\u0434\u0430\u043d\u043e \u0434\u043e \u043a\u043e\u0448\u0438\u043a\u0430"+(q>1?" \u00D7"+q:"")+"!");
 }
 function removeFromCart(pid){
+  var _rem=cart.find(function(x){return x.id===pid;});
+  if(_rem)trackRemoveFromCart(_rem);
   cart=cart.filter(function(x){return x.id!==pid;});
   updateCartBadge();renderCart();
 }
@@ -257,6 +268,8 @@ function coNext1(){
   _coName=n.value.trim()+(ln&&ln.value.trim()?" "+ln.value.trim():"");
   _coPhone=ph.value.trim();
   _coEmail=(em&&em.value.trim())||currentUserEmail||"";
+  var _coTotal=cart.reduce(function(s,x){return s+x.p*x.qty;},0);
+  trackBeginCheckout(cart, _coTotal);
   coStep=2;renderCheckout();
 }
 function coNext2(){
@@ -287,8 +300,11 @@ async function coFinish(){
     contact_name:_coName,contact_phone:_coPhone,contact_email:_coEmail,
     city:_coCity,delivery_address:_coDept,status:"new"
   };
+  trackAddPaymentInfo(cart, total, coPay);
   if(coPay==="cod"){
-    await saveOrderToSupabase(orderData);
+    var _savedOrder=await saveOrderToSupabase(orderData);
+    if(_savedOrder)trackPurchase(Object.assign({},orderData,{order_number:_savedOrder.id}));
+    else trackPurchase(orderData);
     coStep=5;renderCheckout();return;
   }
   localStorage.setItem("_pendingOrder",JSON.stringify(orderData));
@@ -1372,46 +1388,50 @@ function setLang(l,silent){
 // ── HOME RENDER ──
 function renderHome(){
   var tr=getCurrentLangPack();
-  document.getElementById("catnav-in").innerHTML=(function(){
-    var CK=["home","kitchen","bathroom","cleaning","decor","kids","pets","lighting","bedroom","garden"];
-    return NAV.map(function(c,i){
-      var oc=i===0?"showPage('home')":
-        "setFilter('"+CK[i]+"');showPage('products')";
-      return "<a class=\"cni"+(i===0?" active":"")+"\" onclick=\""+oc+"\">"+c+"</a>";
-    }).join("");
-  }());
 
+  // \u2500\u2500 \u041D\u0430\u0432\u0456\u0433\u0430\u0446\u0456\u044F \u043F\u043E \u043A\u0430\u0442\u0435\u0433\u043E\u0440\u0456\u044F\u0445 (\u0432\u0435\u0440\u0445\u043D\u0456\u0439 \u0440\u044F\u0434\u043E\u043A) \u2500\u2500
+  var catnav=document.getElementById("catnav-in");
+  if(catnav){
+    var navH="<a class=\"cni active\" onclick=\"showPage('home')\">"+tr.nav[0]+"</a>";
+    if(_sbCats&&_sbCats.length){
+      _sbCats.forEach(function(c){
+        navH+="<a class=\"cni\" onclick=\"setFilter('"+c.slug+"');showPage('products')\">"+c.name+"</a>";
+      });
+    }
+    catnav.innerHTML=navH;
+  }
+
+  // \u2500\u2500 \u0413\u0435\u0440\u043E\u0439: \u043F\u043E\u043F\u0443\u043B\u044F\u0440\u043D\u0456 \u0442\u043E\u0432\u0430\u0440\u0438 \u2500\u2500
   var hpa=document.getElementById("hero-prods-all");
   if(hpa){
-    var _hpCats=["kitchen","decor"];
-    hpa.innerHTML=_hpCats.flatMap(function(cat){
-      return PRODS.filter(function(p){return p.cat===cat;}).slice(0,3).map(function(p){
-        var disc=Math.round((1-p.p/p.op)*100);
-        return "<div class=\"hpc\" onclick=\"openMod("+p.id+")\"><div class=\"hpc-em\">"+p.e+"</div>"
-          +"<div><div class=\"hpc-nm\">"+p.nm+"</div><div class=\"hpc-row\"><div class=\"hpc-pr\">"+p.p+" \u0433\u0440\u043D</div><div class=\"hpc-op\">"+p.op+" \u0433\u0440\u043D</div><div class=\"hpc-bd\">-"+disc+"%</div></div></div></div>";
-      });
+    hpa.innerHTML=PRODS.slice(0,6).map(function(p){
+      var disc=p.op>p.p?Math.round((1-p.p/p.op)*100):0;
+      return "<div class=\"hpc\" onclick=\"openMod("+p.id+")\"><div class=\"hpc-em\">"+p.e+"</div>"
+        +"<div><div class=\"hpc-nm\">"+p.nm+"</div><div class=\"hpc-row\"><div class=\"hpc-pr\">"+p.p+" \u0433\u0440\u043D</div><div class=\"hpc-op\">"+p.op+" \u0433\u0440\u043D</div>"+(disc>0?"<div class=\"hpc-bd\">-"+disc+"%</div>":"")+"</div></div></div>";
     }).join("");
   }
 
-  var _pk=document.getElementById("hposter-kitchen");
-  if(_pk){_pk.innerHTML='<span class="hposter-icon">\uD83C\uDF73</span><div class="hposter-tag">'+(tr.catNames&&tr.catNames.kitchen?tr.catNames.kitchen:"Kitchen")+'</div><div class="hposter-title">'+(tr.posterTitles&&tr.posterTitles.kitchen?tr.posterTitles.kitchen:"Cookware &amp; kitchen tools")+'</div><div class="hposter-disc">'+(tr.posterDisc&&tr.posterDisc.kitchen?tr.posterDisc.kitchen:"up to \u221250%")+'</div>';}
-  var _pd=document.getElementById("hposter-decor");
-  if(_pd){_pd.innerHTML='<span class="hposter-icon">\uD83C\uDF3F</span><div class="hposter-tag">'+(tr.catNames&&tr.catNames.decor?tr.catNames.decor:"Decor")+'</div><div class="hposter-title">'+(tr.posterTitles&&tr.posterTitles.decor?tr.posterTitles.decor:"Home decor &amp; interior")+'</div><div class="hposter-disc">'+(tr.posterDisc&&tr.posterDisc.decor?tr.posterDisc.decor:"up to \u221243%")+'</div>';}
-
+  // \u2500\u2500 \u0421\u0456\u0442\u043A\u0430 \u043A\u0430\u0442\u0435\u0433\u043E\u0440\u0456\u0439 \u2500\u2500
   var catH="";
-  CATS.forEach(function(c){
-    catH+="<div class=\"cc\" onclick=\"setFilter('"+c.cat+"');showPage('products')\"><div class=\"cc-em\">"+c.e+"</div><div class=\"cc-nm\">"+c.n+"</div><div class=\"cc-ct\">"+c.c+" "+tr.productsWord+"</div></div>";
-  });
+  if(CATS.length){
+    CATS.forEach(function(c){
+      catH+="<div class=\"cc\" onclick=\"setFilter('"+c.cat+"');showPage('products')\"><div class=\"cc-em\">"+c.e+"</div><div class=\"cc-nm\">"+c.n+"</div>"+(c.c?"<div class=\"cc-ct\">"+c.c+" "+tr.productsWord+"</div>":"")+"</div>";
+    });
+  }else{
+    catH="<div style=\"grid-column:1/-1;text-align:center;padding:20px;color:var(--gt)\">\u0414\u043E\u0434\u0430\u0439\u0442\u0435 \u043A\u0430\u0442\u0435\u0433\u043E\u0440\u0456\u0457 \u0432 \u0430\u0434\u043C\u0456\u043D-\u043F\u0430\u043D\u0435\u043B\u0456</div>";
+  }
   document.getElementById("cat-grid").innerHTML=catH;
 
-  document.getElementById("pgrid").innerHTML=PRODS.slice(0,8).map(pCard).join("");
+  // \u2500\u2500 \u0413\u0440\u0456\u0434 \u0442\u043E\u0432\u0430\u0440\u0456\u0432 \u2500\u2500
+  var pg=document.getElementById("pgrid");
+  if(pg)pg.innerHTML=PRODS.length?PRODS.slice(0,8).map(pCard).join(""):"<div style=\"grid-column:1/-1;text-align:center;padding:40px;color:var(--gt)\">\u0414\u043E\u0434\u0430\u0439\u0442\u0435 \u0442\u043E\u0432\u0430\u0440\u0438 \u0432 \u0430\u0434\u043C\u0456\u043D-\u043F\u0430\u043D\u0435\u043B\u0456</div>";
 
   var dealH="";
   PRODS.slice(0,4).forEach(function(p){
     dealH+="<div class=\"db-prod\" onclick=\"openMod("+p.id+")\"><div class=\"dp-em\">"+p.e+"</div><div><div class=\"dp-nm\">"+p.nm+"</div><div class=\"dp-pr\">"+p.p+" \u0433\u0440\u043D</div><div class=\"dp-old\">"+p.op+" \u0433\u0440\u043D</div></div></div>";
   });
-  document.getElementById("db-right").innerHTML=dealH;
-  document.getElementById("npgrid").innerHTML=PRODS.slice(8).map(pCard).join("");
+  var dbr=document.getElementById("db-right");if(dbr)dbr.innerHTML=dealH;
+  var npg=document.getElementById("npgrid");if(npg)npg.innerHTML=PRODS.slice(8).map(pCard).join("");
   document.getElementById("reviews-home").innerHTML=ALL_REVIEWS.slice(0,3).map(rCard).join("");
 }
 
@@ -1844,6 +1864,60 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
+// ЗАВАНТАЖЕННЯ ТОВАРІВ З SUPABASE
+// ============================================================
+async function loadProdsFromSupabase(){
+  if(!supabase)return;
+  try{
+    // Паралельно завантажуємо товари і категорії
+    var[prodsRes,catsRes,pcRes]=await Promise.all([
+      supabase.from("products").select("id,name,price,old_price,emoji,image_url,in_stock").eq("is_active",true).order("id",{ascending:false}),
+      supabase.from("categories").select("id,name,slug,emoji,parent_id").eq("is_active",true).order("sort_order"),
+      supabase.from("product_categories").select("product_id,category_id"),
+    ]);
+
+    // ── Категорії ──
+    var rawCats=(!catsRes.error&&catsRes.data)||[];
+    // Карта id→slug для прив'язки товарів
+    var catById={};
+    rawCats.forEach(function(c){catById[c.id]=c;});
+
+    // Підрахунок товарів у категорії
+    var catCount={};
+    ((!pcRes.error&&pcRes.data)||[]).forEach(function(pc){
+      catCount[pc.category_id]=(catCount[pc.category_id]||0)+1;
+    });
+    // Тільки кореневі категорії для відображення
+    _sbCats=rawCats.filter(function(c){return !c.parent_id;}).map(function(c){
+      return{id:c.id,name:c.name,slug:c.slug,e:c.emoji||"📦",_count:catCount[c.id]||""};
+    });
+    updateLocalizedCollections();
+
+    // Карта product_id → slug категорії
+    var catMap={};
+    ((!pcRes.error&&pcRes.data)||[]).forEach(function(pc){
+      if(!catMap[pc.product_id]&&catById[pc.category_id])catMap[pc.product_id]=catById[pc.category_id].slug;
+    });
+
+    // ── Товари ──
+    var rawProds=(!prodsRes.error&&prodsRes.data)||[];
+    if(prodsRes.error)console.warn("[loadProds] products:",prodsRes.error.message);
+
+    var mapped=rawProds.map(function(d){
+      var price=d.price||0;
+      var oldPrice=d.old_price||price;
+      return{id:d.id,nm:d.name||"",e:d.emoji||"📦",p:price,op:oldPrice,r:4.5,rv:0,b:oldPrice>price?"sale":"new",cat:catMap[d.id]||null,image_url:d.image_url||null,in_stock:d.in_stock!==false};
+    });
+
+    PRODS.splice(0,PRODS.length,...mapped);
+    console.info("[dobrobut] "+mapped.length+" товарів, "+_sbCats.length+" категорій завантажено з Supabase");
+    renderHome();
+    var pp=document.getElementById("page-products");
+    if(pp&&pp.classList.contains("active")){renderAllProducts();}
+  }catch(e){console.warn("[loadProds] exception:",e);}
+}
+
+// ============================================================
 // ІНІЦІАЛІЗАЦІЯ
 // ============================================================
 // ── INIT ──
@@ -1851,29 +1925,22 @@ document.addEventListener('DOMContentLoaded', function() {
 // Handle LiqPay redirect
 if(window.location.search.includes("payment=success")){
   var _pending=localStorage.getItem("_pendingOrder");
-  if(_pending){try{var _pord=JSON.parse(_pending);_pord.status="new";saveOrderToSupabase(_pord).then(function(){localStorage.removeItem("_pendingOrder");});}catch(_e){}}
-  history.replaceState(null,"",window.location.pathname);
-  setTimeout(function(){showToast("\u2705 \u041e\u043f\u043b\u0430\u0442\u0430 \u0443\u0441\u043f\u0456\u0448\u043d\u0430! \u0417\u0430\u043c\u043e\u0432\u043b\u0435\u043d\u043d\u044f \u043e\u0444\u043e\u0440\u043c\u043b\u0435\u043d\u043e.");},600);
-}
-
-// Handle LiqPay redirect back
-if(window.location.search.includes("payment=success")){
-  var _pending=localStorage.getItem("_pendingOrder");
   if(_pending){
     try{
       var _pord=JSON.parse(_pending);
       _pord.status="new";
-      saveOrderToSupabase(_pord).then(function(){localStorage.removeItem("_pendingOrder");});
+      saveOrderToSupabase(_pord).then(function(saved){
+        trackPurchase(Object.assign({},_pord,saved?{order_number:saved.order_number}:{}));
+        localStorage.removeItem("_pendingOrder");
+      });
     }catch(_e){}
   }
   history.replaceState(null,"",window.location.pathname);
   setTimeout(function(){showToast("✅ Оплата успішна! Замовлення оформлено.");},600);
 }
+initAnalytics();
 setLang(getSavedLang(),true);
-if(new URLSearchParams(window.location.search).get("payment")==="success"){
-  history.replaceState(null,"",window.location.pathname);
-  setTimeout(function(){showToast("✅ Оплату успішно отримано! Дякуємо за замовлення.");},600);
-}
+loadProdsFromSupabase();
 if(supabase){
   supabase.auth.onAuthStateChange(function(event,session){
     if(session&&session.user){
@@ -2009,6 +2076,8 @@ function openProdPage(id){
   pdCurrentId=id;pdQty=1;pdAiOpen=false;
   var ap=document.getElementById("pd-ai-panel");if(ap)ap.classList.remove("open");
   showPage("product");
+  trackViewItem(p);
+  updateMeta({title:p.nm,description:p.nm+' — купити в інтернет-магазині Добробут. Ціна '+p.p+' грн.'});
   document.getElementById("pd-title").textContent=p.nm;
   document.getElementById("pd-bread").textContent=p.nm;
   document.getElementById("pd-emoji").textContent=p.e;
