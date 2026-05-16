@@ -90,6 +90,7 @@ window.signOut = async function () {
   await sb.auth.signOut();
   document.getElementById('admin-app').style.display = 'none';
   document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('auth-screen').style.flex = '1';
   document.getElementById('pw-inp').value = '';
   document.getElementById('auth-err').textContent = '';
   sessions = {}; activeSid = null; allCategories = []; allProducts = [];
@@ -103,7 +104,7 @@ sb.auth.getSession().then(({ data: { session } }) => {
 function showAdminApp(user) {
   document.getElementById('auth-screen').style.display = 'none';
   const app = document.getElementById('admin-app');
-  app.style.display = '';
+  app.style.display = 'flex';
   app.style.flex = '1';
   app.style.overflow = 'hidden';
   const emailEl = document.getElementById('sb-email');
