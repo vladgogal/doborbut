@@ -45,8 +45,9 @@
   /* ── MAIN PADDING ── */
   .main{padding:14px 12px 90px}
 
-  /* ── PANELS (cart, acc, fav, ai) ── */
-  .sp{width:100%;right:-100%}
+  /* ── PANELS — above nav bar ── */
+  .ovl{z-index:505 !important}
+  .sp{width:100%;right:-100%;z-index:510 !important}
   .sp.open{right:0}
 
   /* ── HERO ── */
