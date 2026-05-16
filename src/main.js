@@ -1186,7 +1186,7 @@ function pCard(p){
   var isFav=favs.some(function(x){return String(x.id)===String(p.id);});
   var pid="'"+p.id+"'";
   var imgHtml=p.image_url
-    ?'<img src="'+p.image_url+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">'
+    ?'<img src="'+p.image_url+'" alt="" style="width:100%;height:100%;object-fit:contain;padding:6px;box-sizing:border-box" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">'
      +'<span class="pimg-fb" style="display:none">'+p.e+'</span>'
     :'<span>'+p.e+'</span>';
   var badgeTxt=disc>0?bl+" -"+disc+"%":bl;
@@ -2143,14 +2143,23 @@ function openProdPage(id){
   document.getElementById("pd-title").textContent=p.nm;
   document.getElementById("pd-bread").textContent=p.nm;
   var pdEmojiEl=document.getElementById("pd-emoji");
-  if(p.image_url){pdEmojiEl.innerHTML='<img src="'+p.image_url+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">';}
+  if(p.image_url){pdEmojiEl.innerHTML='<img src="'+p.image_url+'" alt="" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:inherit">';}
   else{pdEmojiEl.textContent=p.e;}
   document.getElementById("pd-qty-v").textContent="1";
   var disc=(p.op>0&&p.p<p.op)?Math.round((1-p.p/p.op)*100):0;
   document.getElementById("pd-pnew").textContent=p.p+" \u0433\u0440\u043d";
-  document.getElementById("pd-pold").textContent=disc>0?p.op+" \u0433\u0440\u043d":"";
-  document.getElementById("pd-disc").textContent=disc>0?"-"+disc+"%":"";
-  document.getElementById("pd-save").textContent=disc>0?"\u0412\u0438 \u0435\u043a\u043e\u043d\u043e\u043c\u0438\u0442\u0435 "+(p.op-p.p)+" \u0433\u0440\u043d":"";
+  var pdOldEl=document.getElementById("pd-pold");
+  var pdDiscEl=document.getElementById("pd-disc");
+  var pdSaveEl=document.getElementById("pd-save");
+  if(disc>0){
+    pdOldEl.textContent=p.op+" \u0433\u0440\u043d"; pdOldEl.style.display="";
+    pdDiscEl.textContent="-"+disc+"%"; pdDiscEl.style.display="";
+    pdSaveEl.textContent="\u0412\u0438 \u0435\u043a\u043e\u043d\u043e\u043c\u0438\u0442\u0435 "+(p.op-p.p)+" \u0433\u0440\u043d";
+  }else{
+    pdOldEl.style.display="none";
+    pdDiscEl.style.display="none";
+    pdSaveEl.textContent="";
+  }
   document.getElementById("pd-stars").textContent="\u2605".repeat(Math.floor(p.r))+"\u2606".repeat(5-Math.floor(p.r));
   document.getElementById("pd-rcnt").textContent="("+p.rv+" \u0432\u0456\u0434\u0433\u0443\u043a\u0456\u0432)";
   document.getElementById("pd-sold").textContent="\u2022 "+(p.rv*5)+"+ \u043f\u0440\u043e\u0434\u0430\u043d\u043e";
