@@ -1911,7 +1911,7 @@ async function loadProdsFromSupabase(){
   try{
     // Паралельно завантажуємо товари і категорії
     var[prodsRes,catsRes,pcRes]=await Promise.all([
-      supabase.from("products").select("id,name,price,old_price,emoji,image_url,in_stock").eq("is_active",true).order("id",{ascending:false}),
+      supabase.from("products").select("id,name,price,old_price,emoji,image_url,in_stock,description,slug,meta_title,meta_description,parameters").eq("is_active",true).order("id",{ascending:false}),
       supabase.from("categories").select("id,name,slug,parent_id").eq("is_active",true).order("sort_order"),
       supabase.from("product_categories").select("product_id,category_id"),
     ]);
@@ -1946,7 +1946,7 @@ async function loadProdsFromSupabase(){
     var mapped=rawProds.map(function(d){
       var price=d.price||0;
       var oldPrice=d.old_price||price;
-      return{id:d.id,nm:d.name||"",e:d.emoji||"📦",p:price,op:oldPrice,r:4.5,rv:0,b:oldPrice>price?"sale":"new",cat:catMap[d.id]||null,image_url:d.image_url||null,in_stock:d.in_stock!==false};
+      return{id:d.id,nm:d.name||"",e:d.emoji||"📦",p:price,op:oldPrice,r:4.5,rv:0,b:oldPrice>price?"sale":"new",cat:catMap[d.id]||null,image_url:d.image_url||null,in_stock:d.in_stock!==false,description:d.description||"",slug:d.slug||null,meta_title:d.meta_title||null,meta_desc:d.meta_description||null,params:d.parameters||null};
     });
 
     PRODS.splice(0,PRODS.length,...mapped);
@@ -2139,7 +2139,12 @@ function openProdPage(id){
   var ap=document.getElementById("pd-ai-panel");if(ap)ap.classList.remove("open");
   showPage("product");
   trackViewItem(p);
-  updateMeta({title:p.nm,description:p.nm+' — купити в інтернет-магазині Добробут. Ціна '+p.p+' грн.'});
+  updateMeta({
+    title:p.meta_title||p.nm,
+    description:p.meta_desc||(p.nm+' — купити в інтернет-магазині Добробут. Ціна '+p.p+' грн.'),
+    image:p.image_url||undefined,
+    url:window.location.origin+window.location.pathname+(p.slug?'?product='+p.id:''),
+  });
   document.getElementById("pd-title").textContent=p.nm;
   document.getElementById("pd-bread").textContent=p.nm;
   var pdEmojiEl=document.getElementById("pd-emoji");
@@ -2172,16 +2177,16 @@ function openProdPage(id){
   else if(p.b==="hot")bc+='<span class="pd-badge pbh">\uD83C\uDFC6 \u0425\u0406\u0422</span>';
   bc+='<span class="pd-badge pba">\u2705 \u0412 \u043d\u0430\u044f\u0432\u043d\u043e\u0441\u0442\u0456</span>';
   document.getElementById("pd-badges").innerHTML=bc;
-  var th0Content=p.image_url?'<img src="'+p.image_url+'" alt="" style="width:100%;height:100%;object-fit:cover">':p.e;
-  var ths=['<div class="pd-th active" onclick="pdThumb(this,\''+p.e+'\',\''+p.image_url+'\')">'+th0Content+'</div>',
-    '<div class="pd-th" onclick="pdThumb(this,\'\uD83D\uDCF8\')">\uD83D\uDCF8</div>',
-    '<div class="pd-th" onclick="pdThumb(this,\'\u2B50\')">\u2B50</div>',
-    '<div class="pd-th" onclick="pdThumb(this,\'\uD83C\uDF81\')">\uD83C\uDF81</div>',
-  ].join("");
+  var th0Content=p.image_url?'<img src="'+p.image_url+'" alt="'+escHtml(p.nm)+'" style="width:100%;height:100%;object-fit:cover">':p.e;
+  var ths='<div class="pd-th active" onclick="pdThumb(this,\''+p.e+'\',\''+p.image_url+'\')">'+th0Content+'</div>';
   document.getElementById("pd-thumbs").innerHTML=ths;
-  document.getElementById("pd-desc").innerHTML=PROD_DESCS[id]||("<p>"+p.nm+"</p>");
-  var sp=PROD_SPECS[id]||[["\u0410\u0440\u0442\u0438\u043a\u0443\u043b","#"+(1000+id)]];
-  document.getElementById("pd-specs").innerHTML=sp.map(function(r){return "<tr><td>"+r[0]+"</td><td>"+r[1]+"</td></tr>";}).join("");
+  document.getElementById("pd-desc").innerHTML=p.description?("<p>"+escHtml(p.description)+"</p>"):PROD_DESCS[id]||("<p>"+escHtml(p.nm)+"</p>");
+  var sp;
+  if(p.params&&typeof p.params==="object"&&!Array.isArray(p.params)){
+    sp=Object.entries(p.params).map(function(kv){return[kv[0],kv[1]];});
+  }
+  if(!sp||!sp.length)sp=PROD_SPECS[id]||[["\u0410\u0440\u0442\u0438\u043a\u0443\u043b","#"+(1000+id)]];
+  document.getElementById("pd-specs").innerHTML=sp.map(function(r){return "<tr><td>"+escHtml(String(r[0]))+"</td><td>"+escHtml(String(r[1]))+"</td></tr>";}).join("");
   var rv=PROD_REVS[id]||[];var rh="";
   rv.forEach(function(r){
     rh+='<div class="pd-rcard"><div class="pd-rtop"><div class="pd-rava">'+escHtml(r.em)+'</div><div><div class="pd-rnm">'+escHtml(r.nm)+'</div><div class="pd-rdt">'+escHtml(r.date)+'</div></div><div style="margin-left:auto;color:#f59e0b;font-size:13px">'+"\u2605".repeat(r.stars)+"\u2606".repeat(5-r.stars)+'</div></div><div class="pd-rtxt">'+escHtml(r.txt)+'</div>';
