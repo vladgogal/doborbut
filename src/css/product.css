@@ -2,13 +2,26 @@
 #page-product.active{display:block}
 .pd-det{max-width:1400px;margin:0 auto;padding:24px 40px}
 .pd-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-bottom:48px}
-.pd-img{background:#fff;border-radius:20px;height:460px;display:flex;align-items:center;justify-content:center;font-size:130px;border:2px solid var(--gl2);margin-bottom:12px;transition:border-color .2s;overflow:hidden;position:relative}
+.pd-img-wrap{position:relative;margin-bottom:12px}
+.pd-img{background:#fff;border-radius:20px;height:460px;display:flex;align-items:center;justify-content:center;font-size:130px;border:2px solid var(--gl2);transition:border-color .2s;overflow:hidden;position:relative;user-select:none}
 #pd-emoji{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:130px}
 #pd-emoji img{width:100%;height:100%;object-fit:contain}
 .pd-img:hover{border-color:var(--gm)}
-.pd-thumbs{display:flex;gap:10px}
-.pd-th{width:70px;height:70px;background:var(--bg);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;border:2px solid var(--gl2);transition:all .15s;flex-shrink:0}
-.pd-th.active{border-color:var(--g);background:var(--gl)}.pd-th:hover{border-color:var(--gm)}
+/* gallery nav arrows */
+.pd-gal-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.88);border:none;border-radius:50%;width:40px;height:40px;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:26px;line-height:1;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.14);transition:background .15s;color:var(--dk);font-weight:300}
+.pd-gal-nav:hover{background:#fff}
+.pd-gal-prev{left:10px}
+.pd-gal-next{right:10px}
+.pd-gal-nav.visible{display:flex}
+/* image counter badge */
+.pd-gal-counter{position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,.48);color:#fff;border-radius:12px;padding:3px 10px;font-size:12px;font-weight:600;display:none;letter-spacing:.5px}
+.pd-gal-counter.visible{display:block}
+/* thumbnails strip */
+.pd-thumbs{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.pd-thumbs::-webkit-scrollbar{display:none}
+.pd-th{width:82px;height:82px;background:var(--bg);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;border:2px solid var(--gl2);transition:all .15s;flex-shrink:0;overflow:hidden}
+.pd-th img{width:100%;height:100%;object-fit:cover}
+.pd-th.active{border-color:var(--g);box-shadow:0 0 0 2px var(--gl)}.pd-th:hover{border-color:var(--gm)}
 .pd-badges{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .pd-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700}
 .pbs{background:#fff0f0;color:var(--red)}.pbn{background:var(--gl);color:var(--gd)}.pbh{background:#fff8e6;color:#b45309}.pba{background:var(--gl);color:var(--gd)}

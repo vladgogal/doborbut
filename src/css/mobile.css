@@ -152,8 +152,11 @@
   .back-nav{padding:10px 14px !important;margin-bottom:0 !important;border-bottom:1px solid var(--gl2)}
   .bread{font-size:11px}
   .pd-grid{grid-template-columns:1fr !important;gap:0;margin-bottom:0}
-  .pd-img{height:260px;border-radius:0;border-left:none;border-right:none;border-top:none;font-size:90px;margin-bottom:0}
-  .pd-thumbs{padding:8px 16px}
+  .pd-img{height:300px;border-radius:0;border-left:none;border-right:none;border-top:none;font-size:90px;margin-bottom:0}
+  .pd-img-wrap{margin-bottom:0}
+  .pd-thumbs{padding:8px 16px;gap:8px}
+  .pd-th{width:68px;height:68px}
+  .pd-gal-nav{width:34px;height:34px;font-size:22px}
   .pd-grid > div:nth-child(2){padding:14px 16px 0}
   .pd-badges{margin-bottom:8px}
   .pd-title{font-size:18px;margin-bottom:8px;letter-spacing:-.3px}

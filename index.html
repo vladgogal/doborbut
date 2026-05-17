@@ -187,7 +187,12 @@
   </div>
   <div class="pd-grid">
     <div>
-      <div class="pd-img"><span id="pd-emoji" style="font-size:130px"></span></div>
+      <div class="pd-img-wrap">
+        <div class="pd-img"><span id="pd-emoji" style="font-size:130px"></span></div>
+        <button class="pd-gal-nav pd-gal-prev" id="pd-gal-prev" onclick="pdGalNav(-1)">&#8249;</button>
+        <button class="pd-gal-nav pd-gal-next" id="pd-gal-next" onclick="pdGalNav(1)">&#8250;</button>
+        <span class="pd-gal-counter" id="pd-gal-counter"></span>
+      </div>
       <div class="pd-thumbs" id="pd-thumbs"></div>
     </div>
     <div>

@@ -2061,6 +2061,43 @@ if(supabase){
 
 
 var pdQty=1,pdCurrentId=null,pdAiOpen=false,pdAiIdx=0;
+var pdGalleryImages=[],pdGalleryIdx=0;
+
+function _pdGalSetup(images){
+  pdGalleryImages=images;pdGalleryIdx=0;
+  var prev=document.getElementById("pd-gal-prev");
+  var next=document.getElementById("pd-gal-next");
+  var ctr=document.getElementById("pd-gal-counter");
+  var multi=images.length>1;
+  if(prev)prev.classList.toggle("visible",multi);
+  if(next)next.classList.toggle("visible",multi);
+  if(ctr){ctr.classList.toggle("visible",multi);if(multi)ctr.textContent="1 / "+images.length;}
+  // touch/swipe
+  var pdImgEl=document.querySelector(".pd-img");
+  if(pdImgEl&&!pdImgEl._galSwipe){
+    pdImgEl._galSwipe=true;
+    var sx=0;
+    pdImgEl.addEventListener("touchstart",function(e){sx=e.touches[0].clientX;},{passive:true});
+    pdImgEl.addEventListener("touchend",function(e){
+      var dx=e.changedTouches[0].clientX-sx;
+      if(Math.abs(dx)>40)pdGalNav(dx<0?1:-1);
+    },{passive:true});
+  }
+}
+function pdGalNav(dir){
+  var len=pdGalleryImages.length;if(len<=1)return;
+  pdGalleryIdx=(pdGalleryIdx+dir+len)%len;
+  var url=pdGalleryImages[pdGalleryIdx];
+  var el=document.getElementById("pd-emoji");
+  if(el)el.innerHTML='<img src="'+url+'" alt="" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">';
+  document.querySelectorAll(".pd-th").forEach(function(t,i){t.classList.toggle("active",i===pdGalleryIdx);});
+  var ctr=document.getElementById("pd-gal-counter");
+  if(ctr)ctr.textContent=(pdGalleryIdx+1)+" / "+len;
+  // scroll thumbnail into view
+  var th=document.querySelectorAll(".pd-th")[pdGalleryIdx];
+  if(th)th.scrollIntoView({block:"nearest",inline:"center",behavior:"smooth"});
+}
+window.pdGalNav=pdGalNav;
 var PROD_DESCS={
   1:"<h4>\u041f\u0440\u043e \u0442\u043e\u0432\u0430\u0440</h4><p>\u0410\u043d\u0442\u0438\u043f\u0440\u0438\u0433\u0430\u0440\u043d\u0430 \u0441\u043a\u043e\u0432\u043e\u0440\u043e\u0434\u0430 \u043f\u0440\u0435\u043c\u0456\u0443\u043c \u043a\u043b\u0430\u0441\u0443 \u0437 \u0433\u0440\u0430\u043d\u0456\u0442\u043d\u0438\u043c \u043f\u043e\u043a\u0440\u0438\u0442\u0442\u044f\u043c ILAG (\u0428\u0432\u0435\u0439\u0446\u0430\u0440\u0456\u044f). \u0420\u0456\u0432\u043d\u043e\u043c\u0456\u0440\u043d\u0438\u0439 \u0440\u043e\u0437\u043f\u043e\u0434\u0456\u043b \u0442\u0435\u043f\u043b\u0430 \u0437\u0430\u0432\u0434\u044f\u043a\u0438 \u043f\u043e\u0442\u043e\u0432\u0449\u0435\u043d\u043e\u043c\u0443 \u0434\u043d\u0443 6 \u043c\u043c.</p><h4>\u041e\u0441\u043e\u0431\u043b\u0438\u0432\u043e\u0441\u0442\u0456</h4><ul><li>\u0422\u0440\u0438\u0448\u0430\u0440\u043e\u0432\u0435 \u0433\u0440\u0430\u043d\u0456\u0442\u043d\u0435 \u043f\u043e\u043a\u0440\u0438\u0442\u0442\u044f</li><li>\u041f\u043e\u0442\u043e\u0432\u0449\u0435\u043d\u0435 \u0434\u043d\u043e 6 \u043c\u043c</li><li>\u0420\u0443\u0447\u043a\u0430, \u0449\u043e \u043d\u0435 \u043d\u0430\u0433\u0440\u0456\u0432\u0430\u0454\u0442\u044c\u0441\u044f</li><li>\u041f\u0456\u0434\u0445\u043e\u0434\u0438\u0442\u044c \u0434\u043b\u044f \u0456\u043d\u0434\u0443\u043a\u0446\u0456\u0439\u043d\u0438\u0445 \u043f\u043b\u0438\u0442</li></ul>",
   2:"<h4>\u041f\u0440\u043e \u043d\u0430\u0431\u0456\u0440</h4><p>6 \u0433\u0435\u0440\u043c\u0435\u0442\u0438\u0447\u043d\u0438\u0445 \u043a\u043e\u043d\u0442\u0435\u0439\u043d\u0435\u0440\u0456\u0432 \u0437 \u0445\u0430\u0440\u0447\u043e\u0432\u043e\u0433\u043e \u043f\u043b\u0430\u0441\u0442\u0438\u043a\u0443 BPA-free \u0434\u043b\u044f \u0437\u0431\u0435\u0440\u0456\u0433\u0430\u043d\u043d\u044f \u0431\u0443\u0434\u044c-\u044f\u043a\u0438\u0445 \u043f\u0440\u043e\u0434\u0443\u043a\u0442\u0456\u0432.</p>",
@@ -2213,9 +2250,17 @@ function openProdPage(id){
   else if(p.b==="hot")bc+='<span class="pd-badge pbh">\uD83C\uDFC6 \u0425\u0406\u0422</span>';
   bc+='<span class="pd-badge pba">\u2705 \u0412 \u043d\u0430\u044f\u0432\u043d\u043e\u0441\u0442\u0456</span>';
   document.getElementById("pd-badges").innerHTML=bc;
-  var th0Content=p.image_url?'<img src="'+p.image_url+'" alt="'+escHtml(p.nm)+'" style="width:100%;height:100%;object-fit:cover">':p.e;
-  var ths='<div class="pd-th active" onclick="pdThumb(this,\''+p.e+'\',\''+p.image_url+'\')">'+th0Content+'</div>';
-  if(p.images&&p.images.length){p.images.forEach(function(imgUrl){if(imgUrl&&imgUrl!==p.image_url){ths+='<div class="pd-th" onclick="pdThumb(this,\'\',\''+imgUrl+'\')"><img src="'+imgUrl+'" alt="" style="width:100%;height:100%;object-fit:cover"></div>';}});}
+  // Build full gallery array: main photo first, then extras
+  var allImgs=[];
+  if(p.image_url)allImgs.push(p.image_url);
+  if(p.images&&p.images.length){p.images.forEach(function(u){if(u&&u!==p.image_url)allImgs.push(u);});}
+  _pdGalSetup(allImgs);
+  // Render thumbnail strip
+  var ths="";
+  allImgs.forEach(function(url,i){
+    ths+='<div class="pd-th'+(i===0?" active":"")+'" onclick="pdThumb(this,'+i+')"><img src="'+url+'" alt="" loading="lazy"></div>';
+  });
+  if(!allImgs.length)ths='<div class="pd-th active"><span>'+p.e+'</span></div>';
   document.getElementById("pd-thumbs").innerHTML=ths;
   document.getElementById("pd-desc").innerHTML=p.description?("<p>"+escHtml(p.description)+"</p>"):PROD_DESCS[id]||("<p>"+escHtml(p.nm)+"</p>");
   var sp;
@@ -2268,12 +2313,15 @@ function openProdPage(id){
   }
   pdTab("desc");document.getElementById("pd-ai-msgs").innerHTML="";pdAiIdx=0;window.scrollTo(0,0);
 }
-function pdThumb(el,em,imgUrl){
+function pdThumb(el,idx){
   document.querySelectorAll(".pd-th").forEach(function(t){t.classList.remove("active");});
   el.classList.add("active");
+  pdGalleryIdx=idx;
+  var url=pdGalleryImages[idx];
   var pdEmojiEl=document.getElementById("pd-emoji");
-  if(imgUrl&&imgUrl!=="null"){pdEmojiEl.innerHTML='<img src="'+imgUrl+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">';}
-  else{pdEmojiEl.textContent=em;}
+  if(url){pdEmojiEl.innerHTML='<img src="'+url+'" alt="" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">';}
+  var ctr=document.getElementById("pd-gal-counter");
+  if(ctr&&pdGalleryImages.length>1)ctr.textContent=(idx+1)+" / "+pdGalleryImages.length;
 }
 function pdChgQty(d){pdQty=Math.max(1,Math.min(99,pdQty+d));document.getElementById("pd-qty-v").textContent=pdQty;}
 function pdTab(t){
