@@ -63,6 +63,9 @@
   .hposter-title{font-size:16px;margin-bottom:8px}
   .hposter-disc{font-size:10px;padding:4px 10px}
   .hero-prods{display:none}
+  .hero-slider{min-height:180px}
+  .hs-arr{font-size:26px;padding:1px 8px 4px}
+  .hs-dots{bottom:8px}
 
   /* ── SECTION HEADER ── */
   .sec-hdr{margin-bottom:10px}

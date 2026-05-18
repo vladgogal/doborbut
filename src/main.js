@@ -1993,6 +1993,25 @@ async function loadProdsFromSupabase(){
   }catch(e){console.warn("[loadProds] exception:",e);}
 }
 
+// ── Hero slider ──────────────────────────────────────────────
+var _hsIdx=0,_hsTotal=3,_hsTimer=null;
+function hsGo(i){
+  _hsIdx=i;
+  var t=document.getElementById('hs-track');
+  if(t)t.style.transform='translateX(-'+(i*100)+'%)';
+  document.querySelectorAll('.hs-dot').forEach(function(d,j){d.classList.toggle('active',j===i);});
+}
+function hsNav(d){
+  hsGo((_hsIdx+d+_hsTotal)%_hsTotal);
+  clearInterval(_hsTimer);
+  _hsTimer=setInterval(function(){hsGo((_hsIdx+1)%_hsTotal);},4000);
+}
+window.hsGo=hsGo;window.hsNav=hsNav;
+// start autoplay after a short delay so images can load
+setTimeout(function(){
+  _hsTimer=setInterval(function(){hsGo((_hsIdx+1)%_hsTotal);},4000);
+},1000);
+
 // ============================================================
 // ІНІЦІАЛІЗАЦІЯ
 // ============================================================
