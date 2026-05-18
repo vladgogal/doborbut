@@ -1935,10 +1935,11 @@ async function loadProdsFromSupabase(){
       supabase.from("reviews").select("product_id,rating"),
     ]);
     // ── Банери (окремо, щоб помилка не зламала основне завантаження) ──
-    supabase.from("banners").select("id,image_url,title").eq("is_active",true).order("sort_order").order("created_at").then(function(bannersRes){
+    supabase.from("banners").select("id,image_url,title,is_active,created_at").neq("is_active",false).order("created_at").then(function(bannersRes){
+      console.log("banners result:", bannersRes);
       var banners=(!bannersRes.error&&bannersRes.data)||[];
       if(banners.length>0)_hsRender(banners);
-    }).catch(function(){});
+    }).catch(function(e){console.log("banners error:",e);});
 
     // ── Категорії ──
     var rawCats=(!catsRes.error&&catsRes.data)||[];
@@ -1998,40 +1999,43 @@ async function loadProdsFromSupabase(){
   }catch(e){console.warn("[loadProds] exception:",e);}
 }
 
-// ── Hero slider ──────────────────────────────────────────────
-var _hsIdx=0,_hsTotal=0,_hsTimer=null;
+// ── Hero posters (3 рядом, гортаються по 3) ──────────────────
+var _hsBanners=[],_hsPage=0,_hsTimer=null;
 function _hsRender(banners){
-  var track=document.getElementById('hs-track');
-  var dots=document.getElementById('hs-dots');
+  var hero=document.getElementById('hero-block');
+  if(hero)hero.style.display='';
+  _hsBanners=banners;
+  _hsPage=0;
+  _hsShowPage(0);
+  var pages=Math.ceil(banners.length/3);
   var prev=document.getElementById('hs-prev');
   var next=document.getElementById('hs-next');
+  var dots=document.getElementById('hs-dots');
+  if(prev)prev.style.display=pages>1?'':'none';
+  if(next)next.style.display=pages>1?'':'none';
+  if(dots)dots.style.display='none';
+  if(pages>1){
+    clearInterval(_hsTimer);
+    _hsTimer=setInterval(function(){_hsShowPage((_hsPage+1)%pages);},4000);
+  }
+}
+function _hsShowPage(page){
+  var track=document.getElementById('hs-track');
   if(!track)return;
-  _hsTotal=banners.length;
-  _hsIdx=0;
-  track.innerHTML=banners.map(function(b){
+  _hsPage=page;
+  var shown=_hsBanners.slice(page*3,page*3+3);
+  track.innerHTML=shown.map(function(b){
     return '<img class="hs-slide" src="'+b.image_url+'" alt="'+(b.title||'')+'" loading="lazy">';
   }).join('');
-  track.style.transform='translateX(0)';
-  if(dots)dots.innerHTML=banners.map(function(_,i){
-    return '<span class="hs-dot'+(i===0?' active':'')+'" onclick="hsGo('+i+')"></span>';
-  }).join('');
-  var show=banners.length>1;
-  if(prev)prev.style.display=show?'':'none';
-  if(next)next.style.display=show?'':'none';
-  if(show){clearInterval(_hsTimer);_hsTimer=setInterval(function(){hsGo((_hsIdx+1)%_hsTotal);},4000);}
-}
-function hsGo(i){
-  if(_hsTotal===0)return;
-  _hsIdx=i;
-  var t=document.getElementById('hs-track');
-  if(t)t.style.transform='translateX(-'+(i*100)+'%)';
-  document.querySelectorAll('.hs-dot').forEach(function(d,j){d.classList.toggle('active',j===i);});
 }
 function hsNav(d){
-  hsGo((_hsIdx+d+_hsTotal)%_hsTotal);
+  var pages=Math.ceil(_hsBanners.length/3);
+  if(pages<=1)return;
+  _hsShowPage((_hsPage+d+pages)%pages);
   clearInterval(_hsTimer);
-  _hsTimer=setInterval(function(){hsGo((_hsIdx+1)%_hsTotal);},4000);
+  _hsTimer=setInterval(function(){_hsShowPage((_hsPage+1)%pages);},4000);
 }
+function hsGo(){}
 window.hsGo=hsGo;window.hsNav=hsNav;
 
 // ============================================================

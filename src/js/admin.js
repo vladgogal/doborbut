@@ -132,7 +132,7 @@ function showSetupToast() {
 }
 
 // ─── NAVIGATION ───────────────────────────────────────────
-const PAGE_TITLES = { dashboard: 'Дашборд', products: 'Товари', categories: 'Категорії', orders: 'Замовлення', chats: 'Чати' };
+const PAGE_TITLES = { dashboard: 'Дашборд', products: 'Товари', categories: 'Категорії', banners: 'Банери слайдера', orders: 'Замовлення', chats: 'Чати' };
 
 window.showPage = function (page) {
   currentPage = page;
@@ -145,6 +145,7 @@ window.showPage = function (page) {
 
   if (page === 'products') loadProducts();
   else if (page === 'categories') renderCategoryTree();
+  else if (page === 'banners') loadBanners();
   else if (page === 'orders') loadOrders();
   else if (page === 'dashboard') loadDashboard();
   else if (page === 'chats' && window.innerWidth <= 768 && !activeSid) showSessionsList();
@@ -1418,4 +1419,95 @@ document.addEventListener('keydown', e => {
 
 // Key events on auth screen
 document.getElementById('pw-inp')?.addEventListener('keydown', e => { if (e.key === 'Enter') window.signIn(); });
+
+// ─── BANNERS ──────────────────────────────────────────────
+let bannerFile = null;
+
+async function loadBanners() {
+  const grid = document.getElementById('banners-grid');
+  const lbl = document.getElementById('banner-count-lbl');
+  if (grid) grid.innerHTML = '<div class="tbl-loading">Завантаження...</div>';
+  const { data, error } = await sb.from('banners').select('*').order('created_at');
+  if (error) { if (grid) grid.innerHTML = '<div class="tbl-empty">Помилка завантаження</div>'; return; }
+  const banners = data || [];
+  if (lbl) lbl.textContent = `${banners.length} банер${banners.length === 1 ? '' : 'ів'}`;
+  if (!banners.length) {
+    if (grid) grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🖼</div><div class="empty-state-title">Банерів поки немає</div><div class="empty-state-sub">Додайте перший банер для головного слайдера</div></div>';
+    return;
+  }
+  if (grid) grid.innerHTML = banners.map(b => `
+    <div class="banner-card">
+      <img class="banner-card-img" src="${b.image_url}" alt="${b.title || ''}">
+      <div class="banner-card-body">
+        <span class="banner-card-title">${b.title || 'Банер ' + b.id.slice(0,8)}</span>
+        <button class="banner-card-del" onclick="deleteBanner('${b.id}')" title="Видалити">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+};
+
+window.openBannerModal = function () {
+  bannerFile = null;
+  const prev = document.getElementById('ban-img-preview-img');
+  const ph = document.getElementById('ban-img-placeholder');
+  const inp = document.getElementById('ban-img-file');
+  const title = document.getElementById('ban-title');
+  if (prev) { prev.src = ''; prev.style.display = 'none'; }
+  if (ph) ph.style.display = 'flex';
+  if (inp) inp.value = '';
+  if (title) title.value = '';
+  document.getElementById('banner-modal').classList.add('open');
+};
+
+window.closeBannerModal = function () {
+  document.getElementById('banner-modal').classList.remove('open');
+};
+
+window.onBanImgFile = function (input) {
+  const file = input.files[0];
+  if (!file) return;
+  bannerFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const prev = document.getElementById('ban-img-preview-img');
+    const ph = document.getElementById('ban-img-placeholder');
+    if (prev) { prev.src = e.target.result; prev.style.display = 'block'; }
+    if (ph) ph.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+};
+
+window.saveBanner = async function () {
+  if (!bannerFile) { toast('Оберіть фото банера', 'error'); return; }
+  const btn = document.getElementById('ban-save-btn');
+  btn.disabled = true; btn.textContent = 'Завантаження...';
+  try {
+    const ext = bannerFile.name.split('.').pop() || 'jpg';
+    const filename = `banners/banner_${Date.now()}.${ext}`;
+    const { error: upErr } = await sb.storage.from(STORAGE_BUCKET).upload(filename, bannerFile, { upsert: true, contentType: bannerFile.type });
+    if (upErr) throw upErr;
+    const { data: urlData } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(filename);
+    const imageUrl = urlData.publicUrl;
+    const title = document.getElementById('ban-title').value.trim();
+    const { error: insErr } = await sb.from('banners').insert({ image_url: imageUrl, title, is_active: true, sort_order: 0 });
+    if (insErr) throw insErr;
+    closeBannerModal();
+    toast('Банер додано!', 'success');
+    loadBanners();
+  } catch (e) {
+    toast('Помилка: ' + (e.message || e), 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Зберегти';
+  }
+};
+
+window.deleteBanner = async function (id) {
+  if (!confirm('Видалити банер?')) return;
+  const { error } = await sb.from('banners').delete().eq('id', id);
+  if (error) { toast('Помилка видалення', 'error'); return; }
+  toast('Банер видалено', 'success');
+  loadBanners();
+};
 document.getElementById('email-inp')?.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('pw-inp')?.focus(); });
