@@ -1274,7 +1274,7 @@ function onSrInput(){
       var dh="<div class=\"sd-lbl\">"+tr.searchDropLabel+"</div>";
       scored.slice(0,6).forEach(function(x){
         var p=x.p;
-        dh+="<div class=\"sd-item\" onclick=\"document.getElementById('srch-drop').classList.remove('open');openMod("+p.id+")\"><div class=\"sd-em\">"+p.e+"</div>"
+        dh+="<div class=\"sd-item\" onclick=\"document.getElementById('srch-drop').classList.remove('open');openMod('"+p.id+"')\"><div class=\"sd-em\">"+p.e+"</div>"
           +"<div><div class=\"sd-nm\">"+p.nm+"</div><div style=\"display:flex;align-items:center;gap:5px\"><span class=\"sd-pr\">"+p.p+" "+tr.currency+"</span><span class=\"sd-old\">"+p.op+" "+tr.currency+"</span></div></div></div>";
       });
       drop.innerHTML=dh;drop.classList.add("open");
