@@ -59,18 +59,10 @@
 <div class="page active" id="page-home"><div class="main">
 <div class="hero">
   <div class="hero-slider" id="hero-slider">
-    <div class="hs-track" id="hs-track">
-      <img class="hs-slide" src="/Баннер Весна копія3214r565t.jpg" alt="Акція 1">
-      <img class="hs-slide" src="/121346е6р7.jpg" alt="Акція 2">
-      <img class="hs-slide" src="/21212121.jpg" alt="Акція 3">
-    </div>
-    <button class="hs-arr hs-prev" onclick="hsNav(-1)">&#8249;</button>
-    <button class="hs-arr hs-next" onclick="hsNav(1)">&#8250;</button>
-    <div class="hs-dots">
-      <span class="hs-dot active" onclick="hsGo(0)"></span>
-      <span class="hs-dot" onclick="hsGo(1)"></span>
-      <span class="hs-dot" onclick="hsGo(2)"></span>
-    </div>
+    <div class="hs-track" id="hs-track"></div>
+    <button class="hs-arr hs-prev" onclick="hsNav(-1)" id="hs-prev" style="display:none">&#8249;</button>
+    <button class="hs-arr hs-next" onclick="hsNav(1)" id="hs-next" style="display:none">&#8250;</button>
+    <div class="hs-dots" id="hs-dots"></div>
   </div>
   <div class="hero-prods" id="hero-prods-all"></div>
 </div>

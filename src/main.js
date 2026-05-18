@@ -1928,12 +1928,16 @@ async function loadProdsFromSupabase(){
   if(!supabase)return;
   try{
     // Паралельно завантажуємо товари і категорії
-    var[prodsRes,catsRes,pcRes,revRes]=await Promise.all([
+    var[prodsRes,catsRes,pcRes,revRes,bannersRes]=await Promise.all([
       supabase.from("products").select("id,name,name_en,name_ru,price,old_price,emoji,image_url,images,in_stock,description,slug,meta_title,meta_description,parameters").or("is_active.eq.true,is_active.is.null").order("id",{ascending:false}),
-      supabase.from("categories").select("id,name,slug,parent_id").eq("is_active",true).order("sort_order"),
+      supabase.from("categories").select("id,name,slug,parent_id,emoji").eq("is_active",true).order("sort_order"),
       supabase.from("product_categories").select("product_id,category_id"),
       supabase.from("reviews").select("product_id,rating"),
+      supabase.from("banners").select("id,image_url,title").eq("is_active",true).order("sort_order").order("created_at"),
     ]);
+    // ── Банери ──
+    var banners=(!bannersRes.error&&bannersRes.data)||[];
+    if(banners.length>0)_hsRender(banners);
 
     // ── Категорії ──
     var rawCats=(!catsRes.error&&catsRes.data)||[];
@@ -1994,8 +1998,29 @@ async function loadProdsFromSupabase(){
 }
 
 // ── Hero slider ──────────────────────────────────────────────
-var _hsIdx=0,_hsTotal=3,_hsTimer=null;
+var _hsIdx=0,_hsTotal=0,_hsTimer=null;
+function _hsRender(banners){
+  var track=document.getElementById('hs-track');
+  var dots=document.getElementById('hs-dots');
+  var prev=document.getElementById('hs-prev');
+  var next=document.getElementById('hs-next');
+  if(!track)return;
+  _hsTotal=banners.length;
+  _hsIdx=0;
+  track.innerHTML=banners.map(function(b){
+    return '<img class="hs-slide" src="'+b.image_url+'" alt="'+(b.title||'')+'" loading="lazy">';
+  }).join('');
+  track.style.transform='translateX(0)';
+  if(dots)dots.innerHTML=banners.map(function(_,i){
+    return '<span class="hs-dot'+(i===0?' active':'')+'" onclick="hsGo('+i+')"></span>';
+  }).join('');
+  var show=banners.length>1;
+  if(prev)prev.style.display=show?'':'none';
+  if(next)next.style.display=show?'':'none';
+  if(show){clearInterval(_hsTimer);_hsTimer=setInterval(function(){hsGo((_hsIdx+1)%_hsTotal);},4000);}
+}
 function hsGo(i){
+  if(_hsTotal===0)return;
   _hsIdx=i;
   var t=document.getElementById('hs-track');
   if(t)t.style.transform='translateX(-'+(i*100)+'%)';
@@ -2007,10 +2032,6 @@ function hsNav(d){
   _hsTimer=setInterval(function(){hsGo((_hsIdx+1)%_hsTotal);},4000);
 }
 window.hsGo=hsGo;window.hsNav=hsNav;
-// start autoplay after a short delay so images can load
-setTimeout(function(){
-  _hsTimer=setInterval(function(){hsGo((_hsIdx+1)%_hsTotal);},4000);
-},1000);
 
 // ============================================================
 // ІНІЦІАЛІЗАЦІЯ
