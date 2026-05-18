@@ -2,7 +2,7 @@
 @media (max-width: 768px) {
 
   /* ── GLOBAL OVERFLOW FIX ── */
-  html,body{overflow-x:hidden;max-width:100vw}
+  html,body{overflow-x:hidden;max-width:100vw;width:100%}
 
   /* ── HEADER ── */
   .hdr-in{
@@ -55,7 +55,7 @@
   .cni{padding:8px 10px;font-size:12px;white-space:nowrap}
 
   /* ── MAIN PADDING ── */
-  .main{padding:14px 12px 90px}
+  .main{padding:14px 12px 90px;width:100%;box-sizing:border-box}
 
   /* ── PANELS — above nav bar ── */
   .ovl{z-index:505 !important}
@@ -295,6 +295,31 @@
     width:38px;height:38px;flex-shrink:0;
   }
   .sup-attach{width:34px;height:34px;flex-shrink:0}
+
+  /* ── FIX RIGHT SIDE GREY STRIP ── */
+  .page,
+  .page.active{
+    width:100%;
+    max-width:100vw;
+    overflow-x:hidden;
+    box-sizing:border-box;
+  }
+
+  .hdr,
+  .catnav,
+  .footer{
+    width:100%;
+    max-width:100vw;
+    box-sizing:border-box;
+    overflow-x:hidden;
+  }
+
+  .hdr-in,
+  .catnav-inner,
+  .footer-in{
+    width:100%;
+    box-sizing:border-box;
+  }
 }
 
 /* ════════════════════════════════════════
