@@ -1928,16 +1928,17 @@ async function loadProdsFromSupabase(){
   if(!supabase)return;
   try{
     // Паралельно завантажуємо товари і категорії
-    var[prodsRes,catsRes,pcRes,revRes,bannersRes]=await Promise.all([
+    var[prodsRes,catsRes,pcRes,revRes]=await Promise.all([
       supabase.from("products").select("id,name,name_en,name_ru,price,old_price,emoji,image_url,images,in_stock,description,slug,meta_title,meta_description,parameters").or("is_active.eq.true,is_active.is.null").order("id",{ascending:false}),
       supabase.from("categories").select("id,name,slug,parent_id,emoji").eq("is_active",true).order("sort_order"),
       supabase.from("product_categories").select("product_id,category_id"),
       supabase.from("reviews").select("product_id,rating"),
-      supabase.from("banners").select("id,image_url,title").eq("is_active",true).order("sort_order").order("created_at"),
     ]);
-    // ── Банери ──
-    var banners=(!bannersRes.error&&bannersRes.data)||[];
-    if(banners.length>0)_hsRender(banners);
+    // ── Банери (окремо, щоб помилка не зламала основне завантаження) ──
+    supabase.from("banners").select("id,image_url,title").eq("is_active",true).order("sort_order").order("created_at").then(function(bannersRes){
+      var banners=(!bannersRes.error&&bannersRes.data)||[];
+      if(banners.length>0)_hsRender(banners);
+    }).catch(function(){});
 
     // ── Категорії ──
     var rawCats=(!catsRes.error&&catsRes.data)||[];
